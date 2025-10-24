@@ -34,7 +34,6 @@ export default function LogIn() {
     try {
       setLoading(true);
 
-      // ✅ Usa la variable correcta
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -49,7 +48,6 @@ export default function LogIn() {
 
         setMessage({ type: "success", text: "Login successful!" });
 
-        // ✅ Redirige según el rol
         setTimeout(() => {
           if (data.user.role === "driver") {
             navigate("/driverHome");

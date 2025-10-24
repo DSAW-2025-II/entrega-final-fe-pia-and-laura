@@ -11,16 +11,13 @@ export default function PassengerSignIn() {
   const [serverError, setServerError] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  // ✅ Usa siempre import.meta.env en Vite, no process.env
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
   const [values, setValues] = useState({
-    nombre: "",
-    apellido: "",
-    idUniversidad: "",
+    name: "",
+    lastName: "",
+    universityId: "",
     email: "",
-    celular: "",
+    phone: "",
     password: "",
   });
 
@@ -47,12 +44,12 @@ export default function PassengerSignIn() {
     }
 
     if (!allowedTypes.includes(file.type)) {
-      setImageError("Formato no soportado. Usa JPG o PNG. *");
+      setImageError("Not supported. Use JPG or   PNG. *");
       return;
     }
 
     if (file.size > MAX_IMAGE_BYTES) {
-      setImageError("Archivo muy grande. Máx 2MB. *");
+      setImageError("File too large. Max 2MB. *");
       return;
     }
 
@@ -72,28 +69,28 @@ export default function PassengerSignIn() {
   const validateForm = () => {
     const newErrors = {};
     const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
-    const idRegex = /^\d{5}$/; // ✅ tu backend acepta cualquier ID, no solo 0000XXXXXX
+    const idRegex = /^\d{5}$/; 
     const emailRegex = /^[A-Za-z0-9._%+-]+@unisabana\.edu\.co$/;
     const phoneRegex = /^3\d{9}$/;
     const passwordRegex =
       /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\[\]{};':"\\|,.<>\/?]).{8,}$/;
 
-    if (!values.nombre.trim()) newErrors.nombre = "Required field *";
-    else if (!nameRegex.test(values.nombre)) newErrors.nombre = "Only letters allowed *";
+    if (!values.name.trim()) newErrors.name = "Required field *";
+    else if (!nameRegex.test(values.name)) newErrors.name = "Only letters allowed *";
 
-    if (!values.apellido.trim()) newErrors.apellido = "Required field *";
-    else if (!nameRegex.test(values.apellido)) newErrors.apellido = "Only letters allowed *";
+    if (!values.lastName.trim()) newErrors.lastName = "Required field *";
+    else if (!nameRegex.test(values.lastName)) newErrors.lastName = "Only letters allowed *";
 
-    if (!values.idUniversidad.trim()) newErrors.idUniversidad = "Required field *";
-    else if (!idRegex.test(values.idUniversidad)) newErrors.idUniversidad = "Invalid ID format *";
+    if (!values.universityId.trim()) newErrors.universityId = "Required field *";
+    else if (!idRegex.test(values.universityId)) newErrors.universityId = "Invalid ID format *";
 
     if (!values.email.trim()) newErrors.email = "Required field *";
     else if (!emailRegex.test(values.email))
       newErrors.email = "Must end with @unisabana.edu.co *";
 
-    if (!values.celular.trim()) newErrors.celular = "Required field *";
-    else if (!phoneRegex.test(values.celular))
-      newErrors.celular = "Must start with 3 and have 10 digits *";
+    if (!values.phone.trim()) newErrors.phone = "Required field *";
+    else if (!phoneRegex.test(values.phone))
+      newErrors.phone = "Must start with 3 and have 10 digits *";
 
     if (!values.password.trim()) newErrors.password = "Required field *";
     else if (!passwordRegex.test(values.password))
@@ -137,7 +134,6 @@ export default function PassengerSignIn() {
       if (!res.ok) {
         setServerError(data.message || "Error al registrar usuario.");
       } else {
-        // ✅ Registro exitoso
         localStorage.setItem("userRole", "passenger");
         localStorage.setItem("isAuthenticated", "true");
         navigate("/passengerHome");
@@ -165,11 +161,11 @@ export default function PassengerSignIn() {
         {/* FORMULARIO */}
         <div className="flex flex-col gap-6 w-full max-w-sm">
           {[
-            { key: "nombre", label: "Name", placeholder: "Enter your name" },
-            { key: "apellido", label: "Last Name", placeholder: "Enter your last name" },
-            { key: "idUniversidad", label: "ID", placeholder: "Enter your institutional ID" },
+            { key: "name", label: "Name", placeholder: "Enter your name" },
+            { key: "lastName", label: "Last Name", placeholder: "Enter your last name" },
+            { key: "universityId", label: "ID", placeholder: "Enter your institutional ID" },
             { key: "email", label: "Email", placeholder: "Enter your institutional email" },
-            { key: "celular", label: "Phone number", placeholder: "Enter your number" },
+            { key: "phone", label: "Phone number", placeholder: "Enter your number" },
             { key: "password", label: "Password", placeholder: "Enter your password", type: "password" },
           ].map((field) => (
             <div key={field.key} className="flex flex-col gap-1">

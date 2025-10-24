@@ -13,10 +13,7 @@ export default function CarSignIn() {
   const [soatFileName, setSoatFileName] = useState("");
   const [carPhotoFile, setCarPhotoFile] = useState(null);
   const [soatFile, setSoatFile] = useState(null);
-
-  // ✅ CORRECCIÓN: usar import.meta.env en lugar de process.env
   const API_URL = import.meta.env.VITE_API_BASE_URL;
-
   const [values, setValues] = useState({
     licensePlate: "",
     capacity: "",
@@ -48,7 +45,6 @@ export default function CarSignIn() {
     setValues((prev) => ({ ...prev, make, model: "" }));
   };
 
-  // ✅ Liberar URLs de preview para evitar fugas de memoria
   useEffect(() => {
     return () => {
       if (carPhotoPreview?.startsWith("blob:")) URL.revokeObjectURL(carPhotoPreview);
@@ -67,11 +63,11 @@ export default function CarSignIn() {
       return;
     }
     if (!allowedTypes.includes(file.type)) {
-      setError("Formato no soportado. Usa JPG/PNG/PDF.");
+      setError("Not supported. Use JPG/PNG/PDF.");
       return;
     }
     if (file.size > MAX_IMAGE_BYTES) {
-      setError("Archivo muy grande. Máx 2MB.");
+      setError("File too large. Max 2MB.");
       return;
     }
     setFileName(file.name);
@@ -118,7 +114,7 @@ export default function CarSignIn() {
     formData.append("soat", soatFile);
 
     try {
-      const token = localStorage.getItem("token"); // ✅ incluir token si se requiere autenticación
+      const token = localStorage.getItem("token"); 
       const response = await fetch(`${API_URL}/cars`, {
         method: "POST",
         headers: {

@@ -25,7 +25,6 @@ export default function DriverSignIn() {
   const MAX_IMAGE_BYTES = 2 * 1024 * 1024; // 2 MB
   const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
 
-  // 🔹 Liberar memoria cuando cambie la imagen
   useEffect(() => {
     return () => {
       if (preview && preview.startsWith("blob:")) {
@@ -49,12 +48,12 @@ export default function DriverSignIn() {
     }
 
     if (!allowedTypes.includes(file.type)) {
-      setImageError("Formato no soportado. Usa JPG o PNG *");
+      setImageError("Not supported. Use JPG or PNG *");
       return;
     }
 
     if (file.size > MAX_IMAGE_BYTES) {
-      setImageError("Archivo muy grande. Máx 2MB *");
+      setImageError("File too large. Max 2MB *");
       return;
     }
 
@@ -119,11 +118,11 @@ export default function DriverSignIn() {
 
       if (selectedFile) {
         const formData = new FormData();
-        formData.append("nombre", values.name);
-        formData.append("apellido", values.lastName);
-        formData.append("idUniversidad", values.id);
+        formData.append("name", values.name);
+        formData.append("lastName", values.lastName);
+        formData.append("universityId", values.id);
         formData.append("email", values.email);
-        formData.append("celular", values.phone);
+        formData.append("phone", values.phone);
         formData.append("password", values.password);
         formData.append("role", "driver");
         formData.append("avatar", selectedFile);
@@ -137,11 +136,11 @@ export default function DriverSignIn() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            nombre: values.name,
-            apellido: values.lastName,
-            idUniversidad: values.id,
+            name: values.name,
+            lastName: values.lastName,
+            universityId: values.id,
             email: values.email,
-            celular: values.phone,
+            phone: values.phone,
             password: values.password,
             role: "driver",
           }),
@@ -159,7 +158,7 @@ export default function DriverSignIn() {
       navigate("/carSignIn");
     } catch (err) {
       console.error(err);
-      setServerError("⚠️ Error al conectar con el servidor.");
+      setServerError("Server connection error.");
     } finally {
       setLoading(false);
     }

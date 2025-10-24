@@ -23,7 +23,7 @@ export default function DriverSignIn() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.message || "Error al iniciar sesión");
+        setError(data.message || "Log In failed.");
         return;
       }
 
@@ -38,8 +38,8 @@ export default function DriverSignIn() {
         navigate("/start");
       }
     } catch (error) {
-      console.error("Error iniciando sesión:", error);
-      setError("No se pudo conectar con el servidor.");
+      console.error("Log In failed:", error);
+      setError("Could not connect to the server.");
     }
   };
 
