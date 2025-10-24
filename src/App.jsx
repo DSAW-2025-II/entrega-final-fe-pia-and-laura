@@ -15,6 +15,7 @@ function App() {
     <Router>
       <Routes>
         {/* Rutas públicas */}
+        <Route path="/" element={<Navigate to="/start" replace />} />
         <Route path="/start" element={<Start />} />
         <Route path="/LogIn" element={<LogIn />} />
         <Route path="/passengerSignIn" element={<PassengerSignIn />} />
