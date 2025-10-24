@@ -1,55 +1,27 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Start from "./pages/start.jsx";
-import LogIn from "./pages/LogIn.jsx";
-import UserProfile from "./pages/UserProfile.jsx";
-import PassengerSignIn from "./pages/SignIn/PassengerSignIn.jsx";
-import DriverSignIn from "./pages/SignIn/DriverSignIn.jsx";
-import CarSignIn from "./pages/SignIn/CarSignIn.jsx";
-import PassengerHome from "./pages/Home/passengerHome.jsx";
-import DriverHome from "./pages/Home/driverHome.jsx";
-import ProtectedRoute from "./pages/components/protectedRoute.jsx";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Start from "./pages/Start";
+import LogIn from "./pages/LogIn";
+import DriverSignIn from "./pages/DriverSignIn";
+import PassengerSignIn from "./pages/PassengerSignIn";
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
-        {/* Rutas públicas */}
+        {/* 🔹 Redirección de la raíz "/" hacia "/start" */}
         <Route path="/" element={<Navigate to="/start" replace />} />
-        <Route path="/start" element={<Start />} />
-        <Route path="/LogIn" element={<LogIn />} />
-        <Route path="/passengerSignIn" element={<PassengerSignIn />} />
-        <Route path="/driverSignIn" element={<DriverSignIn />} />
-        <Route path="/CarSignIn" element={<CarSignIn />} />
 
-        {/* Rutas protegidas */}
-        
-        <Route
-          path="/userProfile"
-          element={
-            <ProtectedRoute allowedRoles={["passenger", "driver"]}>
-              <UserProfile />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/passengerHome"
-          element={
-            <ProtectedRoute allowedRoles={["passenger"]}>
-              <PassengerHome />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/driverHome"
-          element={
-            <ProtectedRoute allowedRoles={["driver"]}>
-              <DriverHome />
-            </ProtectedRoute>
-          }
-        />
+        {/* 🔹 Rutas principales */}
+        <Route path="/start" element={<Start />} />
+        <Route path="/login" element={<LogIn />} />
+        <Route path="/driverSignIn" element={<DriverSignIn />} />
+        <Route path="/passengerSignIn" element={<PassengerSignIn />} />
+
+        {/* 🔹 Página por defecto si no hay coincidencia */}
+        <Route path="*" element={<Navigate to="/start" replace />} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
 
