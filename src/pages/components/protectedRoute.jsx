@@ -1,21 +1,17 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 export default function DriverSignIn() {
-  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    const BACKEND_URL = process.env.BACKEND_URL;
 
     try {
-      const response = await fetch(BACKEND_URL, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -34,7 +30,6 @@ export default function DriverSignIn() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // Redirigir según el rol del usuario
       if (data.user.role === "driver") {
         navigate("/driverHome");
       } else if (data.user.role === "passenger") {

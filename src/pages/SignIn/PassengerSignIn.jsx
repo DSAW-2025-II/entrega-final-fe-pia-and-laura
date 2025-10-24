@@ -10,7 +10,11 @@ export default function PassengerSignIn() {
   const [imageError, setImageError] = useState("");
   const [serverError, setServerError] = useState("");
   const [submitted, setSubmitted] = useState(false);
-  const REGISTER_BACKEND_URL = process.env.REGISTER_BACKEND_URL;
+  const [loading, setLoading] = useState(false);
+
+  // ✅ Usa siempre import.meta.env en Vite, no process.env
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   const [values, setValues] = useState({
     nombre: "",
     apellido: "",
@@ -19,6 +23,7 @@ export default function PassengerSignIn() {
     celular: "",
     password: "",
   });
+
   const [errors, setErrors] = useState({});
 
   const MAX_IMAGE_BYTES = 2 * 1024 * 1024; // 2MB
@@ -26,9 +31,7 @@ export default function PassengerSignIn() {
 
   useEffect(() => {
     return () => {
-      if (preview && preview.startsWith("blob:")) {
-        URL.revokeObjectURL(preview);
-      }
+      if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
     };
   }, [preview]);
 
@@ -38,34 +41,27 @@ export default function PassengerSignIn() {
     setImageError("");
     if (!file) {
       setSelectedFile(null);
-      if (preview && preview.startsWith("blob:")) {
-        URL.revokeObjectURL(preview);
-      }
+      if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
       setPreview(null);
       return;
     }
 
     if (!allowedTypes.includes(file.type)) {
       setImageError("Formato no soportado. Usa JPG o PNG. *");
-      setSelectedFile(null);
       return;
     }
 
     if (file.size > MAX_IMAGE_BYTES) {
       setImageError("Archivo muy grande. Máx 2MB. *");
-      setSelectedFile(null);
       return;
     }
 
-    if (preview && preview.startsWith("blob:")) URL.revokeObjectURL(preview);
+    if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
     setPreview(URL.createObjectURL(file));
     setSelectedFile(file);
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    validateAndSetImage(file);
-  };
+  const handleFileChange = (e) => validateAndSetImage(e.target.files?.[0]);
 
   const handleChange = (field) => (e) => {
     setValues((prev) => ({ ...prev, [field]: e.target.value }));
@@ -76,54 +72,32 @@ export default function PassengerSignIn() {
   const validateForm = () => {
     const newErrors = {};
     const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
-    const idRegex = /^0{4}\d{6}$/;
+    const idRegex = /^\d{5}$/; // ✅ tu backend acepta cualquier ID, no solo 0000XXXXXX
     const emailRegex = /^[A-Za-z0-9._%+-]+@unisabana\.edu\.co$/;
     const phoneRegex = /^3\d{9}$/;
     const passwordRegex =
       /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\[\]{};':"\\|,.<>\/?]).{8,}$/;
 
-    // Nombre
-    if (!values.nombre.trim()) {
-      newErrors.nombre = "Required field *";
-    } else if (!nameRegex.test(values.nombre.trim())) {
-      newErrors.nombre = "Only letters allowed *";
-    }
+    if (!values.nombre.trim()) newErrors.nombre = "Required field *";
+    else if (!nameRegex.test(values.nombre)) newErrors.nombre = "Only letters allowed *";
 
-    // Apellido
-    if (!values.apellido.trim()) {
-      newErrors.apellido = "Required field *";
-    } else if (!nameRegex.test(values.apellido.trim())) {
-      newErrors.apellido = "Only letters allowed *";
-    }
+    if (!values.apellido.trim()) newErrors.apellido = "Required field *";
+    else if (!nameRegex.test(values.apellido)) newErrors.apellido = "Only letters allowed *";
 
-    // ID
-    if (!values.idUniversidad.trim()) {
-      newErrors.idUniversidad = "Required field *";
-    } else if (!idRegex.test(values.idUniversidad.trim())) {
-      newErrors.idUniversidad = "Must be 10 digits, starting with 0000 *";
-    }
+    if (!values.idUniversidad.trim()) newErrors.idUniversidad = "Required field *";
+    else if (!idRegex.test(values.idUniversidad)) newErrors.idUniversidad = "Invalid ID format *";
 
-    // Email
-    if (!values.email.trim()) {
-      newErrors.email = "Required field *";
-    } else if (!emailRegex.test(values.email.trim())) {
+    if (!values.email.trim()) newErrors.email = "Required field *";
+    else if (!emailRegex.test(values.email))
       newErrors.email = "Must end with @unisabana.edu.co *";
-    }
 
-    // Celular
-    if (!values.celular.trim()) {
-      newErrors.celular = "Required field *";
-    } else if (!phoneRegex.test(values.celular.trim())) {
+    if (!values.celular.trim()) newErrors.celular = "Required field *";
+    else if (!phoneRegex.test(values.celular))
       newErrors.celular = "Must start with 3 and have 10 digits *";
-    }
 
-    // Contraseña
-    if (!values.password.trim()) {
-      newErrors.password = "Required field *";
-    } else if (!passwordRegex.test(values.password)) {
-      newErrors.password =
-        "8 chars, 1 uppercase, 1 number, 1 symbol *";
-    }
+    if (!values.password.trim()) newErrors.password = "Required field *";
+    else if (!passwordRegex.test(values.password))
+      newErrors.password = "8 chars, 1 uppercase, 1 number, 1 symbol *";
 
     return newErrors;
   };
@@ -136,50 +110,43 @@ export default function PassengerSignIn() {
 
     if (Object.keys(newErrors).length > 0 || imageError) return;
 
+    setLoading(true);
+
     try {
       let res;
       if (selectedFile) {
         const formData = new FormData();
-        formData.append("nombre", values.nombre);
-        formData.append("apellido", values.apellido);
-        formData.append("idUniversidad", values.idUniversidad);
-        formData.append("email", values.email);
-        formData.append("celular", values.celular);
-        formData.append("password", values.password);
+        Object.entries(values).forEach(([key, value]) => formData.append(key, value));
         formData.append("role", "passenger");
         formData.append("avatar", selectedFile);
 
-        res = await fetch(REGISTER_BACKEND_URL, {
+        res = await fetch(`${API_BASE_URL}/auth/register`, {
           method: "POST",
           body: formData,
         });
       } else {
-        // If no image, send JSON
-        res = await fetch(REGISTER_BACKEND_URL, {
+        res = await fetch(`${API_BASE_URL}/auth/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            nombre: values.nombre,
-            apellido: values.apellido,
-            idUniversidad: values.idUniversidad,
-            email: values.email,
-            celular: values.celular,
-            password: values.password,
-            role: "passenger",
-          }),
+          body: JSON.stringify({ ...values, role: "passenger" }),
         });
       }
 
       const data = await res.json();
+
       if (!res.ok) {
         setServerError(data.message || "Error al registrar usuario.");
       } else {
+        // ✅ Registro exitoso
         localStorage.setItem("userRole", "passenger");
         localStorage.setItem("isAuthenticated", "true");
         navigate("/passengerHome");
       }
     } catch (err) {
+      console.error("Error al conectar:", err);
       setServerError("⚠️ Error al conectar con el servidor.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -226,7 +193,6 @@ export default function PassengerSignIn() {
             </div>
           ))}
 
-          {/* Error general del servidor */}
           {serverError && (
             <div className="text-[#F59739] font-semibold text-sm mt-2">{serverError}</div>
           )}
@@ -234,19 +200,18 @@ export default function PassengerSignIn() {
 
         {/* SECCIÓN DERECHA */}
         <div className="relative flex flex-col items-center text-center w-full max-w-lg">
-          {/* Botón Sign Up */}
           <button
             onClick={handleSignUp}
-            className="absolute -top-10 right-0 bg-[#1F2937] text-white px-10 py-3 rounded-xl text-lg font-semibold hover:bg-gray-700 transition"
+            disabled={loading}
+            className="absolute -top-10 right-0 bg-[#1F2937] text-white px-10 py-3 rounded-xl text-lg font-semibold hover:bg-gray-700 transition disabled:opacity-50"
           >
-            Sign Up
+            {loading ? "Registering..." : "Sign Up"}
           </button>
 
           <h1 className="text-[#1F2937] text-start text-6xl font-bold leading-tight mt-10 mb-8 ml-0 self-start">
             New <br /> Passenger
           </h1>
 
-          {/* Imagen circular */}
           <div
             onClick={handleAvatarClick}
             role="button"
@@ -267,6 +232,7 @@ export default function PassengerSignIn() {
           {submitted && imageError && (
             <div className="mt-2 text-[#F59739] font-semibold text-sm">{imageError}</div>
           )}
+
           <input
             type="file"
             accept="image/*"

@@ -3,7 +3,6 @@ import { ArrowRight, CheckCircle, XCircle } from "lucide-react";
 import logo from "../../assets/logo.png";
 import { useNavigate } from "react-router-dom";
 
-
 export default function LogIn() {
   const [values, setValues] = useState({ email: "", password: "" });
   const [submitted, setSubmitted] = useState(false);
@@ -11,7 +10,7 @@ export default function LogIn() {
   const [message, setMessage] = useState({ type: "", text: "" });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const BACKEND_URL = process.env.BACKEND_URL;
+
   const handleChange = (key) => (e) => {
     setValues({ ...values, [key]: e.target.value });
     setErrors({ ...errors, [key]: "" });
@@ -27,45 +26,50 @@ export default function LogIn() {
   };
 
   const handleLogIn = async () => {
-  setSubmitted(true);
-  setMessage({ type: "", text: "" });
+    setSubmitted(true);
+    setMessage({ type: "", text: "" });
 
-  if (!validateForm()) return;
+    if (!validateForm()) return;
 
-  try {
-    setLoading(true);
-    const response = await fetch(BACKEND_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
+    try {
+      setLoading(true);
 
-    const data = await response.json();
-
-    if (response.ok) {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      // Redirigir al home correspondiente
-      if (data.user.role === "driver") {
-        navigate("/driverHome");
-      } else {
-        navigate("/passengerHome");
-      }
-    } else {
-      setMessage({
-        type: "error",
-        text: data.message || "Incorrect email or password.",
+      // ✅ Usa la variable correcta
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
       });
-    }
-  } catch (error) {
-    setMessage({ type: "error", text: "Server connection error." });
-    console.error("Login error:", error);
-  } finally {
-    setLoading(false);
-  }
-};
 
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+
+        setMessage({ type: "success", text: "Login successful!" });
+
+        // ✅ Redirige según el rol
+        setTimeout(() => {
+          if (data.user.role === "driver") {
+            navigate("/driverHome");
+          } else {
+            navigate("/passengerHome");
+          }
+        }, 800);
+      } else {
+        setMessage({
+          type: "error",
+          text: data.message || "Incorrect email or password.",
+        });
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setMessage({ type: "error", text: "Server connection error." });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="h-screen w-full bg-[#1F2937] flex items-center justify-center">

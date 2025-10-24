@@ -10,7 +10,8 @@ export default function DriverSignIn() {
   const [imageError, setImageError] = useState("");
   const [serverError, setServerError] = useState("");
   const [submitted, setSubmitted] = useState(false);
-  const REGISTER_BACKEND_URL = process.env.REGISTER_BACKEND_URL;
+  const [loading, setLoading] = useState(false);
+
   const [values, setValues] = useState({
     name: "",
     lastName: "",
@@ -24,7 +25,7 @@ export default function DriverSignIn() {
   const MAX_IMAGE_BYTES = 2 * 1024 * 1024; // 2 MB
   const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
 
-  // Liberar URL temporal cuando cambie o se desmonte
+  // 🔹 Liberar memoria cuando cambie la imagen
   useEffect(() => {
     return () => {
       if (preview && preview.startsWith("blob:")) {
@@ -39,8 +40,8 @@ export default function DriverSignIn() {
 
   const validateAndSetImage = (file) => {
     setImageError("");
+
     if (!file) {
-      // limpiar
       setSelectedFile(null);
       if (preview && preview.startsWith("blob:")) URL.revokeObjectURL(preview);
       setPreview(null);
@@ -48,14 +49,12 @@ export default function DriverSignIn() {
     }
 
     if (!allowedTypes.includes(file.type)) {
-      setImageError("Formato no soportado. Usa JPG o PNG. *");
-      setSelectedFile(null);
+      setImageError("Formato no soportado. Usa JPG o PNG *");
       return;
     }
 
     if (file.size > MAX_IMAGE_BYTES) {
-      setImageError("Archivo muy grande. Máx 2MB. *");
-      setSelectedFile(null);
+      setImageError("Archivo muy grande. Máx 2MB *");
       return;
     }
 
@@ -63,7 +62,6 @@ export default function DriverSignIn() {
     const imageURL = URL.createObjectURL(file);
     setPreview(imageURL);
     setSelectedFile(file);
-    setImageError("");
   };
 
   const handleFileChange = (e) => {
@@ -79,7 +77,6 @@ export default function DriverSignIn() {
 
   const validateFields = () => {
     const newErrors = {};
-
     const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
     const idRegex = /^0{4}\d{6}$/; 
     const emailRegex = /^[A-Za-z0-9._%+-]+@unisabana\.edu\.co$/;
@@ -87,47 +84,23 @@ export default function DriverSignIn() {
     const passwordRegex =
       /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\[\]{};':"\\|,.<>\/?]).{8,}$/;
 
-    // Nombre
-    if (!values.name.trim()) {
-      newErrors.name = "Required field *";
-    } else if (!nameRegex.test(values.name.trim())) {
-      newErrors.name = "Only letters allowed *";
-    }
+    if (!values.name.trim()) newErrors.name = "Required field *";
+    else if (!nameRegex.test(values.name.trim())) newErrors.name = "Only letters allowed *";
 
-    // Apellido
-    if (!values.lastName.trim()) {
-      newErrors.lastName = "Required field *";
-    } else if (!nameRegex.test(values.lastName.trim())) {
-      newErrors.lastName = "Only letters allowed *";
-    }
+    if (!values.lastName.trim()) newErrors.lastName = "Required field *";
+    else if (!nameRegex.test(values.lastName.trim())) newErrors.lastName = "Only letters allowed *";
 
-    // ID institucional
-    if (!values.id.trim()) {
-      newErrors.id = "Required field *";
-    } else if (!idRegex.test(values.id.trim())) {
-      newErrors.id = "Must be 10 digits, starting with 0000 *";
-    }
+    if (!values.id.trim()) newErrors.id = "Required field *";
+    else if (!idRegex.test(values.id.trim())) newErrors.id = "Must be 10 digits, starting with 0000 *";
 
-    // Email
-    if (!values.email.trim()) {
-      newErrors.email = "Required field *";
-    } else if (!emailRegex.test(values.email.trim())) {
-      newErrors.email = "Must end with @unisabana.edu.co *";
-    }
+    if (!values.email.trim()) newErrors.email = "Required field *";
+    else if (!emailRegex.test(values.email.trim())) newErrors.email = "Must end with @unisabana.edu.co *";
 
-    // Teléfono
-    if (!values.phone.trim()) {
-      newErrors.phone = "Required field *";
-    } else if (!phoneRegex.test(values.phone.trim())) {
-      newErrors.phone = "Must start with 3 and have 10 digits *";
-    }
+    if (!values.phone.trim()) newErrors.phone = "Required field *";
+    else if (!phoneRegex.test(values.phone.trim())) newErrors.phone = "Must start with 3 and have 10 digits *";
 
-    // Contraseña
-    if (!values.password.trim()) {
-      newErrors.password = "Required field *";
-    } else if (!passwordRegex.test(values.password)) {
-      newErrors.password = "8 chars, 1 uppercase, 1 number, 1 symbol *";
-    }
+    if (!values.password.trim()) newErrors.password = "Required field *";
+    else if (!passwordRegex.test(values.password)) newErrors.password = "8 chars, 1 uppercase, 1 number, 1 symbol *";
 
     return newErrors;
   };
@@ -138,39 +111,37 @@ export default function DriverSignIn() {
     const newErrors = validateFields();
     setErrors(newErrors);
 
-    if (Object.keys(newErrors).length > 0 || imageError) {
-      return;
-    }
+    if (Object.keys(newErrors).length > 0 || imageError) return;
 
     try {
-      // Si hay imagen, usar FormData para incluir archivo
+      setLoading(true);
       let res;
+
       if (selectedFile) {
         const formData = new FormData();
-        formData.append("name", values.name);
-        formData.append("lastName", values.lastName);
+        formData.append("nombre", values.name);
+        formData.append("apellido", values.lastName);
         formData.append("idUniversidad", values.id);
         formData.append("email", values.email);
-        formData.append("phone", values.phone);
+        formData.append("celular", values.phone);
         formData.append("password", values.password);
         formData.append("role", "driver");
         formData.append("avatar", selectedFile);
 
-        res = await fetch(REGISTER_BACKEND_URL, {
+        res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/register`, {
           method: "POST",
           body: formData,
         });
       } else {
-        // Sin imagen: JSON
-        res = await fetch(REGISTER_BACKEND_URL, {
+        res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            name: values.name,
-            lastName: values.lastName,
+            nombre: values.name,
+            apellido: values.lastName,
             idUniversidad: values.id,
             email: values.email,
-            phone: values.phone,
+            celular: values.phone,
             password: values.password,
             role: "driver",
           }),
@@ -183,20 +154,20 @@ export default function DriverSignIn() {
         return;
       }
 
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-      }
-      localStorage.setItem("userRole", "driver");
-      localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("token", data.token || "");
+      localStorage.setItem("user", JSON.stringify(data.user));
       navigate("/carSignIn");
     } catch (err) {
+      console.error(err);
       setServerError("⚠️ Error al conectar con el servidor.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen w-full bg-white flex items-center justify-center relative overflow-hidden">
-      {/* Flecha de regreso */}
+      {/* Botón atrás */}
       <button
         className="absolute top-8 left-8 hover:opacity-70 transition"
         aria-label="Back"
@@ -205,16 +176,16 @@ export default function DriverSignIn() {
         <ArrowLeft className="w-8 h-8 text-black" />
       </button>
 
-      {/* Contenedor principal */}
+      {/* Contenido */}
       <div className="flex flex-col md:flex-row items-center justify-center gap-20 w-full max-w-7xl px-8 md:px-20">
-        {/* FORMULARIO */}
+        {/* Formulario */}
         <div className="flex flex-col gap-6 w-full max-w-sm">
           {[
             { key: "name", label: "Name", placeholder: "Enter your name" },
             { key: "lastName", label: "Last Name", placeholder: "Enter your last name" },
             { key: "id", label: "ID", placeholder: "Enter your institutional ID" },
             { key: "email", label: "Email", placeholder: "Enter your institutional email" },
-            { key: "phone", label: "Phone number", placeholder: "Enter your number" },
+            { key: "phone", label: "Phone", placeholder: "Enter your number" },
             { key: "password", label: "Password", placeholder: "Enter your password", type: "password" },
           ].map((field) => (
             <div key={field.key} className="flex flex-col gap-1">
@@ -224,7 +195,6 @@ export default function DriverSignIn() {
                   <span className="text-[#F59739] font-semibold text-sm">{errors[field.key]}</span>
                 )}
               </div>
-
               <input
                 type={field.type || "text"}
                 value={values[field.key]}
@@ -236,32 +206,29 @@ export default function DriverSignIn() {
             </div>
           ))}
 
-          {/* Error general del servidor */}
           {serverError && (
             <div className="text-[#F59739] font-semibold text-sm mt-2">{serverError}</div>
           )}
         </div>
 
-        {/* SECCIÓN DERECHA */}
+        {/* Derecha: Avatar + Botón */}
         <div className="relative flex flex-col items-center text-center w-full max-w-lg mt-10">
-          {/* Botón Add Car */}
           <button
             onClick={handleAddCar}
+            disabled={loading}
             className="absolute -top-16 -right-10 bg-emerald-500 text-white px-10 py-3 
               rounded-xl text-lg font-semibold flex items-center gap-3 
-              shadow-md hover:bg-emerald-600 transition"
+              shadow-md hover:bg-emerald-600 transition disabled:opacity-60"
           >
             <span className="text-3xl leading-none">+</span>
-            <span>Add a car</span>
+            {loading ? "Saving..." : "Add a car"}
             <ArrowRight className="w-5 h-5" />
           </button>
 
-          {/* Texto principal */}
-          <h1 className="text-[#1F2937] text-center text-6xl font-bold leading-tight mt-10 mb-8 ml-0 self-center">
+          <h1 className="text-[#1F2937] text-center text-6xl font-bold leading-tight mt-10 mb-8">
             New Driver
           </h1>
 
-          {/* Avatar circular clickeable */}
           <div
             onClick={handleAvatarClick}
             role="button"
@@ -277,13 +244,12 @@ export default function DriverSignIn() {
             )}
           </div>
 
-          {/* Texto bajo el avatar */}
-          <p className="text-gray-400 text-lg mt-6">Upload your photo (Optional)</p>
+          <p className="text-gray-400 text-lg mt-6">Upload your photo (optional)</p>
 
-          {/* Mensaje de error de imagen */}
           {submitted && imageError && (
             <div className="mt-2 text-[#F59739] font-semibold text-sm">{imageError}</div>
           )}
+
           <input
             type="file"
             accept="image/*"
