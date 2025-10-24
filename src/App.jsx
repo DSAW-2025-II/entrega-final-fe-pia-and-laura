@@ -14,7 +14,6 @@ function App() {
         <Route path="/login" element={<LogIn />} />
         <Route path="/driverSignIn" element={<DriverSignIn />} />
         <Route path="/passengerSignIn" element={<PassengerSignIn />} />
-        <Route path="*" element={<Navigate to="/start" replace />} />
       </Routes>
     </BrowserRouter>
   );
