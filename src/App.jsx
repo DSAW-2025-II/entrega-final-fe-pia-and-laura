@@ -4,6 +4,11 @@ import Start from "./pages/start";
 import LogIn from "./pages/LogIn.jsx";
 import DriverSignIn from "./pages/SignIn/DriverSignIn.jsx";
 import PassengerSignIn from "./pages/SignIn/PassengerSignIn.jsx";
+import ProtectedRoute from "./pages/components/protectedRoute.jsx";
+import DriverHome from "./pages/Home/driverHome.jsx";
+import PassengerHome from "./pages/Home/passengerHome.jsx";
+import UserProfile from "./pages/UserProfile.jsx";
+import CarSignIn from "./pages/SignIn/CarSignIn.jsx";
 
 function App() {
   return (
@@ -14,6 +19,10 @@ function App() {
         <Route path="/login" element={<LogIn />} />
         <Route path="/driverSignIn" element={<DriverSignIn />} />
         <Route path="/passengerSignIn" element={<PassengerSignIn />} />
+        <Route path="/CarSignIn" element={<CarSignIn />} />
+        <Route path="/driverHome" element={<ProtectedRoute><DriverHome /></ProtectedRoute>} />
+        <Route path="/passengerHome" element={<ProtectedRoute><PassengerHome /></ProtectedRoute>} />
+        <Route path="/userProfile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );

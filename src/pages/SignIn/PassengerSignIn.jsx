@@ -44,7 +44,7 @@ export default function PassengerSignIn() {
     }
 
     if (!allowedTypes.includes(file.type)) {
-      setImageError("Not supported. Use JPG or   PNG. *");
+      setImageError("Not supported. Use JPG or PNG. *");
       return;
     }
 
@@ -69,20 +69,23 @@ export default function PassengerSignIn() {
   const validateForm = () => {
     const newErrors = {};
     const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
-    const idRegex = /^\d{5}$/; 
+    const idRegex = /^0{4}\d{6}$/;
     const emailRegex = /^[A-Za-z0-9._%+-]+@unisabana\.edu\.co$/;
     const phoneRegex = /^3\d{9}$/;
-    const passwordRegex =
-      /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\[\]{};':"\\|,.<>\/?]).{8,}$/;
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\[\]{};':"\\|,.<>\/?]).{8,}$/;
 
     if (!values.name.trim()) newErrors.name = "Required field *";
-    else if (!nameRegex.test(values.name)) newErrors.name = "Only letters allowed *";
+    else if (!nameRegex.test(values.name))
+      newErrors.name = "Only letters allowed *";
 
     if (!values.lastName.trim()) newErrors.lastName = "Required field *";
-    else if (!nameRegex.test(values.lastName)) newErrors.lastName = "Only letters allowed *";
+    else if (!nameRegex.test(values.lastName))
+      newErrors.lastName = "Only letters allowed *";
 
-    if (!values.universityId.trim()) newErrors.universityId = "Required field *";
-    else if (!idRegex.test(values.universityId)) newErrors.universityId = "Invalid ID format *";
+    if (!values.universityId.trim())
+      newErrors.universityId = "Required field *";
+    else if (!idRegex.test(values.universityId))
+      newErrors.universityId = "Invalid ID format *";
 
     if (!values.email.trim()) newErrors.email = "Required field *";
     else if (!emailRegex.test(values.email))
@@ -113,7 +116,9 @@ export default function PassengerSignIn() {
       let res;
       if (selectedFile) {
         const formData = new FormData();
-        Object.entries(values).forEach(([key, value]) => formData.append(key, value));
+        Object.entries(values).forEach(([key, value]) =>
+          formData.append(key, value)
+        );
         formData.append("role", "passenger");
         formData.append("avatar", selectedFile);
 
@@ -136,7 +141,7 @@ export default function PassengerSignIn() {
       } else {
         localStorage.setItem("userRole", "passenger");
         localStorage.setItem("isAuthenticated", "true");
-        navigate("/passengerHome");
+        navigate("/start");
       }
     } catch (err) {
       console.error("Error al conectar:", err);
@@ -150,27 +155,53 @@ export default function PassengerSignIn() {
     <div className="min-h-screen w-full bg-white flex items-center justify-center relative overflow-hidden">
       {/* Flecha de regreso */}
       <button
-        className="absolute top-8 left-8 hover:opacity-70 transition"
+        className="absolute top-6 left-6 hover:opacity-70 transition"
         aria-label="Back"
         onClick={() => navigate(-1)}
       >
-        <ArrowLeft className="w-8 h-8 text-black" />
+        <ArrowLeft className="w-7 h-7 text-black" />
       </button>
 
-      <div className="flex flex-col md:flex-row items-center justify-center gap-20 w-full max-w-7xl px-8 md:px-20">
+      <div
+        className="flex flex-col-reverse md:flex-row items-center justify-center 
+        gap-10 md:gap-20 w-full max-w-7xl px-6 md:px-20"
+      >
         {/* FORMULARIO */}
-        <div className="flex flex-col gap-6 w-full max-w-sm">
+        <div className="flex flex-col gap-5 w-full max-w-sm">
           {[
             { key: "name", label: "Name", placeholder: "Enter your name" },
-            { key: "lastName", label: "Last Name", placeholder: "Enter your last name" },
-            { key: "universityId", label: "ID", placeholder: "Enter your institutional ID" },
-            { key: "email", label: "Email", placeholder: "Enter your institutional email" },
-            { key: "phone", label: "Phone number", placeholder: "Enter your number" },
-            { key: "password", label: "Password", placeholder: "Enter your password", type: "password" },
+            {
+              key: "lastName",
+              label: "Last Name",
+              placeholder: "Enter your last name",
+            },
+            {
+              key: "universityId",
+              label: "ID",
+              placeholder: "Enter your institutional ID",
+            },
+            {
+              key: "email",
+              label: "Email",
+              placeholder: "Enter your institutional email",
+            },
+            {
+              key: "phone",
+              label: "Phone number",
+              placeholder: "Enter your number",
+            },
+            {
+              key: "password",
+              label: "Password",
+              placeholder: "Enter your password",
+              type: "password",
+            },
           ].map((field) => (
             <div key={field.key} className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <label className="text-black font-semibold text-lg">{field.label}</label>
+                <label className="text-black font-semibold text-base">
+                  {field.label}
+                </label>
                 {submitted && errors[field.key] && (
                   <span className="text-[#F59739] font-semibold text-sm">
                     {errors[field.key]}
@@ -184,49 +215,59 @@ export default function PassengerSignIn() {
                 onChange={handleChange(field.key)}
                 placeholder={field.placeholder}
                 className={`bg-[#F4EFEF] rounded-xl px-4 py-3 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 transition
-                  ${submitted && errors[field.key] ? "ring-0 border-2 border-[#F59739]" : "focus:ring-gray-700"}`}
+                  ${
+                    submitted && errors[field.key]
+                      ? "ring-0 border-2 border-[#F59739]"
+                      : "focus:ring-gray-700"
+                  }`}
               />
             </div>
           ))}
 
           {serverError && (
-            <div className="text-[#F59739] font-semibold text-sm mt-2">{serverError}</div>
+            <div className="text-[#F59739] font-semibold text-sm mt-2">
+              {serverError}
+            </div>
           )}
         </div>
 
         {/* SECCIÓN DERECHA */}
         <div className="relative flex flex-col items-center text-center w-full max-w-lg">
-          <button
-            onClick={handleSignUp}
-            disabled={loading}
-            className="absolute -top-10 right-0 bg-[#1F2937] text-white px-10 py-3 rounded-xl text-lg font-semibold hover:bg-gray-700 transition disabled:opacity-50"
-          >
-            {loading ? "Registering..." : "Sign Up"}
-          </button>
-
-          <h1 className="text-[#1F2937] text-start text-6xl font-bold leading-tight mt-10 mb-8 ml-0 self-start">
-            New <br /> Passenger
+          <h1 className="text-[#1F2937] text-3xl md:text-6xl font-bold leading-tight mt-2 mb-6 md:mb-8 self-center md:self-start">
+            New <br className="hidden md:block" /> Passenger
           </h1>
 
-          <div
-            onClick={handleAvatarClick}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === "Enter" && handleAvatarClick()}
-            className={`bg-[#5E626B] w-[300px] h-[300px] rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition overflow-hidden
-              ${submitted && imageError ? "ring-2 ring-[#F59739]" : ""}`}
-          >
-            {preview ? (
-              <img src={preview} alt="Avatar Preview" className="w-full h-full object-cover" />
-            ) : (
-              <User className="text-white w-36 h-36 opacity-90" />
-            )}
+          {/* Avatar + texto opcional */}
+          <div className="flex flex-row md:flex-col items-center justify-center gap-4 md:gap-6">
+            <div
+              onClick={handleAvatarClick}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === "Enter" && handleAvatarClick()}
+              className={`bg-[#5E626B] w-24 h-24 md:w-[300px] md:h-[300px] rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition overflow-hidden
+                ${submitted && imageError ? "ring-2 ring-[#F59739]" : ""}`}
+            >
+              {preview ? (
+                <img
+                  src={preview}
+                  alt="Avatar Preview"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="text-white w-12 h-12 md:w-36 md:h-36 opacity-90" />
+              )}
+            </div>
+
+            <p className="text-gray-400 text-sm md:text-lg">
+              Upload your photo <br className="hidden md:block" />
+              <span className="text-gray-400">(Optional)</span>
+            </p>
           </div>
 
-          <p className="text-gray-400 text-lg mt-6">Upload your photo (Optional)</p>
-
           {submitted && imageError && (
-            <div className="mt-2 text-[#F59739] font-semibold text-sm">{imageError}</div>
+            <div className="mt-2 text-[#F59739] font-semibold text-sm">
+              {imageError}
+            </div>
           )}
 
           <input
@@ -236,6 +277,15 @@ export default function PassengerSignIn() {
             onChange={handleFileChange}
             className="hidden"
           />
+
+          {/* Botón Sign Up */}
+          <button
+            onClick={handleSignUp}
+            disabled={loading}
+            className="mt-8 md:mt-0 md:absolute md:-top-10 md:right-0 bg-[#1F2937] text-white px-8 md:px-10 py-3 rounded-xl text-lg font-semibold hover:bg-gray-700 transition disabled:opacity-50 w-full md:w-auto"
+          >
+            {loading ? "Registering..." : "Sign Up"}
+          </button>
         </div>
       </div>
     </div>

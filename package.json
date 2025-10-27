@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/Lauraher2906/Wheels-Project#readme",
   "dependencies": {
+    "@vitejs/plugin-react": "^5.1.0",
     "lucide-react": "^0.546.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

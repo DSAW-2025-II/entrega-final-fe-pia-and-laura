@@ -1,83 +1,20 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext.jsx";
 
-export default function DriverSignIn() {
-  const [formData, setFormData] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+export default function ProtectedRoute({ children, allowedRoles }) {
+  const { user, isAuthenticated } = useAuth();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+  // Si no hay token ni usuario → redirigir al login
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" replace />;
+  }
 
-    try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
+  // Si hay roles específicos y el usuario no tiene permiso
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/start" replace />;
+  }
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.message || "Log In failed.");
-        return;
-      }
-
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      if (data.user.role === "driver") {
-        navigate("/driverHome");
-      } else if (data.user.role === "passenger") {
-        navigate("/passengerHome");
-      } else {
-        navigate("/start");
-      }
-    } catch (error) {
-      console.error("Log In failed:", error);
-      setError("Could not connect to the server.");
-    }
-  };
-
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col gap-4 w-full max-w-sm bg-gray-50 p-8 rounded-2xl shadow-lg"
-      >
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-4">
-          Driver Login
-        </h1>
-
-        <input
-          type="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className="px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-gray-700 outline-none"
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          className="px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-gray-700 outline-none"
-        />
-
-        {error && <p className="text-[#F59739] text-sm font-semibold">{error}</p>}
-
-        <button
-          type="submit"
-          className="bg-[#1F2937] text-white py-3 rounded-xl text-lg font-semibold hover:bg-gray-800 transition"
-        >
-          Continue
-        </button>
-      </form>
-    </div>
-  );
+  // Si pasa todas las validaciones → renderizar el contenido
+  return children;
 }

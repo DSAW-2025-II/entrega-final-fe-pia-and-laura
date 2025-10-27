@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { ArrowRight, CheckCircle, XCircle } from "lucide-react";
-import logo from "../../assets/logo.png";
 import { useNavigate } from "react-router-dom";
+import logo from "../../assets/logo.png";
+import { useAuth } from "@/context/AuthContext.jsx";
+import { loginUser } from "../services/api.js";
 
 export default function LogIn() {
   const [values, setValues] = useState({ email: "", password: "" });
@@ -10,13 +12,16 @@ export default function LogIn() {
   const [message, setMessage] = useState({ type: "", text: "" });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
+  // 🔹 Maneja cambios en los inputs
   const handleChange = (key) => (e) => {
     setValues({ ...values, [key]: e.target.value });
     setErrors({ ...errors, [key]: "" });
     setMessage({ type: "", text: "" });
   };
 
+  // 🔹 Validaciones del formulario
   const validateForm = () => {
     const newErrors = {};
     if (!values.email.trim()) newErrors.email = "Required field *";
@@ -25,6 +30,7 @@ export default function LogIn() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // 🔹 Función principal de login
   const handleLogIn = async () => {
     setSubmitted(true);
     setMessage({ type: "", text: "" });
@@ -34,36 +40,42 @@ export default function LogIn() {
     try {
       setLoading(true);
 
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
+      const { ok, data } = await loginUser(values);
 
-      const data = await response.json();
+    if (!ok) {
+      throw new Error(data.message || "Incorrect email or password.");
+    }
+    
+    // ✅ Guarda el token
+    login(data.user, data.token);
+    
+    if (data.token) {
+      localStorage.setItem("token", data.token);
+    }
 
-      if (response.ok) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
 
-        setMessage({ type: "success", text: "Login successful!" });
+      // ✅ Guarda datos en el contexto global
+login(data.user, data.token);
 
-        setTimeout(() => {
-          if (data.user.role === "driver") {
-            navigate("/driverHome");
-          } else {
-            navigate("/passengerHome");
-          }
-        }, 800);
-      } else {
-        setMessage({
-          type: "error",
-          text: data.message || "Incorrect email or password.",
-        });
-      }
+    // ✅ Guarda token en localStorage para futuras peticiones
+    if (data.token) {
+      localStorage.setItem("token", data.token);
+    }
+    
+    setMessage({ type: "success", text: "Login successful!" });
+    
+    // ✅ Redirige según el rol
+    setTimeout(() => {
+      if (data.user.role === "driver") navigate("/driverHome");
+      else navigate("/passengerHome");
+    }, 800);
+
     } catch (error) {
       console.error("Login error:", error);
-      setMessage({ type: "error", text: "Server connection error." });
+      setMessage({
+        type: "error",
+        text: error.message || "Server connection error.",
+      });
     } finally {
       setLoading(false);
     }
@@ -92,7 +104,7 @@ export default function LogIn() {
             <label className="text-gray-700 font-semibold">
               Email{" "}
               {submitted && errors.email && (
-                <span className="text-green-600 text-sm font-normal ml-1">
+                <span className="text-[#F59739] text-sm font-normal ml-1">
                   {errors.email}
                 </span>
               )}
@@ -103,7 +115,7 @@ export default function LogIn() {
               onChange={handleChange("email")}
               placeholder="Enter your email"
               className={`w-full rounded-xl px-4 py-3 text-gray-800 bg-[#EEEEEE] focus:outline-none focus:ring-2 transition ${
-                submitted && errors.email ? "ring-green-400" : "ring-gray-300"
+                submitted && errors.email ? "ring-[#F59739]" : "ring-gray-300"
               }`}
             />
           </div>
@@ -113,7 +125,7 @@ export default function LogIn() {
             <label className="text-gray-700 font-semibold">
               Password{" "}
               {submitted && errors.password && (
-                <span className="text-green-600 text-sm font-normal ml-1">
+                <span className="text-[#F59739] text-sm font-normal ml-1">
                   {errors.password}
                 </span>
               )}
@@ -124,7 +136,7 @@ export default function LogIn() {
               onChange={handleChange("password")}
               placeholder="Enter your password"
               className={`w-full rounded-xl px-4 py-3 text-gray-800 bg-[#EEEEEE] focus:outline-none focus:ring-2 transition ${
-                submitted && errors.password ? "ring-green-400" : "ring-gray-300"
+                submitted && errors.password ? "ring-[#F59739]" : "ring-gray-300"
               }`}
             />
           </div>
@@ -135,7 +147,7 @@ export default function LogIn() {
               className={`mt-2 text-lg font-semibold flex items-center gap-2 px-4 py-2 rounded-xl ${
                 message.type === "success"
                   ? "text-green-600 bg-green-100"
-                  : "text-red-600 bg-red-100"
+                  : "text-[#F59739] bg-orange-100"
               }`}
             >
               {message.type === "success" ? <CheckCircle /> : <XCircle />}
@@ -143,6 +155,7 @@ export default function LogIn() {
             </div>
           )}
 
+          {/* Submit Button */}
           <button
             onClick={handleLogIn}
             disabled={loading}

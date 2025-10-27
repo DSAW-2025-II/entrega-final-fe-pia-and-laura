@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 export default function DriverSignIn() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+
   const [preview, setPreview] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [imageError, setImageError] = useState("");
@@ -12,61 +13,55 @@ export default function DriverSignIn() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   const [values, setValues] = useState({
     name: "",
     lastName: "",
-    id: "",
+    universityId: "",
     email: "",
     phone: "",
     password: "",
   });
+
   const [errors, setErrors] = useState({});
 
-  const MAX_IMAGE_BYTES = 2 * 1024 * 1024; // 2 MB
+  const MAX_IMAGE_BYTES = 2 * 1024 * 1024; // 2MB
   const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
 
   useEffect(() => {
     return () => {
-      if (preview && preview.startsWith("blob:")) {
-        URL.revokeObjectURL(preview);
-      }
+      if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
     };
   }, [preview]);
 
-  const handleAvatarClick = () => {
-    fileInputRef.current?.click();
-  };
+  const handleAvatarClick = () => fileInputRef.current?.click();
 
   const validateAndSetImage = (file) => {
     setImageError("");
-
     if (!file) {
       setSelectedFile(null);
-      if (preview && preview.startsWith("blob:")) URL.revokeObjectURL(preview);
+      if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
       setPreview(null);
       return;
     }
 
     if (!allowedTypes.includes(file.type)) {
-      setImageError("Not supported. Use JPG or PNG *");
+      setImageError("Not supported. Use JPG or PNG. *");
       return;
     }
 
     if (file.size > MAX_IMAGE_BYTES) {
-      setImageError("File too large. Max 2MB *");
+      setImageError("File too large. Max 2MB. *");
       return;
     }
 
-    if (preview && preview.startsWith("blob:")) URL.revokeObjectURL(preview);
-    const imageURL = URL.createObjectURL(file);
-    setPreview(imageURL);
+    if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
+    setPreview(URL.createObjectURL(file));
     setSelectedFile(file);
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    validateAndSetImage(file);
-  };
+  const handleFileChange = (e) => validateAndSetImage(e.target.files?.[0]);
 
   const handleChange = (field) => (e) => {
     setValues((prev) => ({ ...prev, [field]: e.target.value }));
@@ -74,32 +69,39 @@ export default function DriverSignIn() {
     setServerError("");
   };
 
-  const validateFields = () => {
+  const validateForm = () => {
     const newErrors = {};
     const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
-    const idRegex = /^0{4}\d{6}$/; 
+    const idRegex = /^0{4}\d{6}$/;
     const emailRegex = /^[A-Za-z0-9._%+-]+@unisabana\.edu\.co$/;
-    const phoneRegex = /^3\d{9}$/; 
+    const phoneRegex = /^3\d{9}$/;
     const passwordRegex =
       /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\[\]{};':"\\|,.<>\/?]).{8,}$/;
 
     if (!values.name.trim()) newErrors.name = "Required field *";
-    else if (!nameRegex.test(values.name.trim())) newErrors.name = "Only letters allowed *";
+    else if (!nameRegex.test(values.name))
+      newErrors.name = "Only letters allowed *";
 
     if (!values.lastName.trim()) newErrors.lastName = "Required field *";
-    else if (!nameRegex.test(values.lastName.trim())) newErrors.lastName = "Only letters allowed *";
+    else if (!nameRegex.test(values.lastName))
+      newErrors.lastName = "Only letters allowed *";
 
-    if (!values.id.trim()) newErrors.id = "Required field *";
-    else if (!idRegex.test(values.id.trim())) newErrors.id = "Must be 10 digits, starting with 0000 *";
+    if (!values.universityId.trim())
+      newErrors.universityId = "Required field *";
+    else if (!idRegex.test(values.universityId))
+      newErrors.universityId = "Invalid ID format *";
 
     if (!values.email.trim()) newErrors.email = "Required field *";
-    else if (!emailRegex.test(values.email.trim())) newErrors.email = "Must end with @unisabana.edu.co *";
+    else if (!emailRegex.test(values.email))
+      newErrors.email = "Must end with @unisabana.edu.co *";
 
     if (!values.phone.trim()) newErrors.phone = "Required field *";
-    else if (!phoneRegex.test(values.phone.trim())) newErrors.phone = "Must start with 3 and have 10 digits *";
+    else if (!phoneRegex.test(values.phone))
+      newErrors.phone = "Must start with 3 and have 10 digits *";
 
     if (!values.password.trim()) newErrors.password = "Required field *";
-    else if (!passwordRegex.test(values.password)) newErrors.password = "8 chars, 1 uppercase, 1 number, 1 symbol *";
+    else if (!passwordRegex.test(values.password))
+      newErrors.password = "8 chars, 1 uppercase, 1 number, 1 symbol *";
 
     return newErrors;
   };
@@ -107,43 +109,31 @@ export default function DriverSignIn() {
   const handleAddCar = async () => {
     setSubmitted(true);
     setServerError("");
-    const newErrors = validateFields();
+    const newErrors = validateForm();
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0 || imageError) return;
 
+    setLoading(true);
     try {
-      setLoading(true);
       let res;
-
       if (selectedFile) {
         const formData = new FormData();
-        formData.append("name", values.name);
-        formData.append("lastName", values.lastName);
-        formData.append("universityId", values.id);
-        formData.append("email", values.email);
-        formData.append("phone", values.phone);
-        formData.append("password", values.password);
+        Object.entries(values).forEach(([key, value]) =>
+          formData.append(key, value)
+        );
         formData.append("role", "driver");
         formData.append("avatar", selectedFile);
 
-        res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/register`, {
+        res = await fetch(`${API_BASE_URL}/auth/register`, {
           method: "POST",
           body: formData,
         });
       } else {
-        res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/register`, {
+        res = await fetch(`${API_BASE_URL}/auth/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: values.name,
-            lastName: values.lastName,
-            universityId: values.id,
-            email: values.email,
-            phone: values.phone,
-            password: values.password,
-            role: "driver",
-          }),
+          body: JSON.stringify({ ...values, role: "driver" }),
         });
       }
 
@@ -153,12 +143,12 @@ export default function DriverSignIn() {
         return;
       }
 
-      localStorage.setItem("token", data.token || "");
-      localStorage.setItem("user", JSON.stringify(data.user));
-      navigate("/carSignIn");
+      localStorage.setItem("userRole", "driver");
+      localStorage.setItem("isAuthenticated", "true");
+      navigate("/CarSignIn");
     } catch (err) {
       console.error(err);
-      setServerError("Server connection error.");
+      setServerError("⚠️ Error al conectar con el servidor.");
     } finally {
       setLoading(false);
     }
@@ -168,85 +158,104 @@ export default function DriverSignIn() {
     <div className="min-h-screen w-full bg-white flex items-center justify-center relative overflow-hidden">
       {/* Botón atrás */}
       <button
-        className="absolute top-8 left-8 hover:opacity-70 transition"
+        className="absolute top-6 left-6 hover:opacity-70 transition"
         aria-label="Back"
         onClick={() => navigate("/start")}
       >
-        <ArrowLeft className="w-8 h-8 text-black" />
+        <ArrowLeft className="w-7 h-7 text-black" />
       </button>
 
       {/* Contenido */}
-      <div className="flex flex-col md:flex-row items-center justify-center gap-20 w-full max-w-7xl px-8 md:px-20">
+      <div className="flex flex-col-reverse md:flex-row items-center justify-center gap-10 md:gap-20 w-full max-w-7xl px-6 md:px-20">
+        
         {/* Formulario */}
-        <div className="flex flex-col gap-6 w-full max-w-sm">
+        <div className="flex flex-col gap-5 w-full max-w-sm">
           {[
             { key: "name", label: "Name", placeholder: "Enter your name" },
             { key: "lastName", label: "Last Name", placeholder: "Enter your last name" },
-            { key: "id", label: "ID", placeholder: "Enter your institutional ID" },
+            { key: "universityId", label: "ID", placeholder: "Enter your institutional ID" },
             { key: "email", label: "Email", placeholder: "Enter your institutional email" },
             { key: "phone", label: "Phone", placeholder: "Enter your number" },
             { key: "password", label: "Password", placeholder: "Enter your password", type: "password" },
           ].map((field) => (
             <div key={field.key} className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <label className="text-black font-semibold text-lg">{field.label}</label>
+                <label className="text-black font-semibold text-base">{field.label}</label>
                 {submitted && errors[field.key] && (
-                  <span className="text-[#F59739] font-semibold text-sm">{errors[field.key]}</span>
+                  <span className="text-[#F59739] font-semibold text-sm">
+                    {errors[field.key]}
+                  </span>
                 )}
               </div>
+
               <input
                 type={field.type || "text"}
                 value={values[field.key]}
                 onChange={handleChange(field.key)}
                 placeholder={field.placeholder}
-                className={`bg-[#F4EFEF] rounded-xl px-4 py-3 text-gray-700 placeholder-gray-500 focus:outline-none transition
-                  ${submitted && errors[field.key] ? "border-2 border-[#F59739]" : "focus:ring-2 focus:ring-gray-700"}`}
+                className={`bg-[#F4EFEF] rounded-xl px-4 py-3 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 transition ${
+                  submitted && errors[field.key]
+                    ? "ring-0 border-2 border-[#F59739]"
+                    : "focus:ring-gray-700"
+                }`}
               />
             </div>
           ))}
 
           {serverError && (
-            <div className="text-[#F59739] font-semibold text-sm mt-2">{serverError}</div>
+            <div className="text-[#F59739] font-semibold text-sm mt-2">
+              {serverError}
+            </div>
           )}
-        </div>
 
-        {/* Derecha: Avatar + Botón */}
-        <div className="relative flex flex-col items-center text-center w-full max-w-lg mt-10">
+          {/* 🔽 Botón visible solo en MOBILE */}
           <button
             onClick={handleAddCar}
             disabled={loading}
-            className="absolute -top-16 -right-10 bg-emerald-500 text-white px-10 py-3 
-              rounded-xl text-lg font-semibold flex items-center gap-3 
-              shadow-md hover:bg-emerald-600 transition disabled:opacity-60"
+            className="block md:hidden mt-6 bg-[#10B981] text-white px-8 py-3 rounded-xl text-lg font-semibold hover:bg-gray-700 transition disabled:opacity-50 w-full flex items-center justify-center gap-2"
           >
-            <span className="text-3xl leading-none">+</span>
-            {loading ? "Saving..." : "Add a car"}
+            {loading ? "Registering..." : "Add a car"}
             <ArrowRight className="w-5 h-5" />
           </button>
+        </div>
 
-          <h1 className="text-[#1F2937] text-center text-6xl font-bold leading-tight mt-10 mb-8">
+        {/* Derecha: Avatar + título */}
+        <div className="relative flex flex-col items-center text-center w-full max-w-lg">
+          <h1 className="text-[#1F2937] text-3xl md:text-6xl font-bold leading-tight mt-2 mb-6 md:mb-8 self-center md:self-start">
             New Driver
           </h1>
 
-          <div
-            onClick={handleAvatarClick}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === "Enter" && handleAvatarClick()}
-            className={`bg-[#5E626B] w-[300px] h-[300px] rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition overflow-hidden
-              ${submitted && imageError ? "ring-2 ring-[#F59739]" : ""}`}
-          >
-            {preview ? (
-              <img src={preview} alt="Avatar Preview" className="w-full h-full object-cover" />
-            ) : (
-              <User className="text-white w-36 h-36 opacity-90" />
-            )}
+          <div className="flex flex-row md:flex-col items-center justify-center gap-4 md:gap-6">
+            <div
+              onClick={handleAvatarClick}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === "Enter" && handleAvatarClick()}
+              className={`bg-[#5E626B] w-24 h-24 md:w-[300px] md:h-[300px] rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition overflow-hidden ${
+                submitted && imageError ? "ring-2 ring-[#F59739]" : ""
+              }`}
+            >
+              {preview ? (
+                <img
+                  src={preview}
+                  alt="Avatar Preview"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="text-white w-12 h-12 md:w-36 md:h-36 opacity-90" />
+              )}
+            </div>
+
+            <p className="text-gray-400 text-sm md:text-lg">
+              Upload your photo <br className="hidden md:block" />
+              <span className="text-gray-400">(Optional)</span>
+            </p>
           </div>
 
-          <p className="text-gray-400 text-lg mt-6">Upload your photo (optional)</p>
-
           {submitted && imageError && (
-            <div className="mt-2 text-[#F59739] font-semibold text-sm">{imageError}</div>
+            <div className="mt-2 text-[#F59739] font-semibold text-sm">
+              {imageError}
+            </div>
           )}
 
           <input
@@ -256,6 +265,16 @@ export default function DriverSignIn() {
             onChange={handleFileChange}
             className="hidden"
           />
+
+          {/* 🔼 Botón visible solo en DESKTOP */}
+          <button
+            onClick={handleAddCar}
+            disabled={loading}
+            className="hidden md:flex mt-8 md:mt-0 md:absolute md:-top-10 md:right-0 bg-[#10B981] text-white px-10 py-3 rounded-xl text-lg font-semibold hover:bg-[]#10B981] transition disabled:opacity-50 items-center justify-center gap-2"
+          >
+            {loading ? "Registering..." : "Add a car"}
+            <ArrowRight className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>

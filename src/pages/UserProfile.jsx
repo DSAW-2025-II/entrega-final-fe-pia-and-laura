@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React from "react";
 import {
   ArrowLeft,
   Mail,
@@ -12,28 +12,6 @@ import {
 } from "lucide-react";
 
 export default function UserProfile() {
-  const fileInputRef = useRef(null);
-  const [preview, setPreview] = useState(null);
-
-  useEffect(() => {
-    return () => {
-      if (preview && preview.startsWith("blob:")) {
-        URL.revokeObjectURL(preview);
-      }
-    };
-  }, [preview]);
-
-  function handleAvatarClick() {
-    if (fileInputRef.current) fileInputRef.current.click();
-  }
-
-  function handleFileChange(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    setPreview(url);
-  }
-
   const menuItems = [
     { icon: <Mail className="w-5 h-5 text-black" />, text: "Notifications" },
     { icon: <Car className="w-5 h-5 text-black" />, text: "Be a driver" },
@@ -42,91 +20,69 @@ export default function UserProfile() {
   ];
 
   return (
-    <div className="min-h-screen w-full bg-white flex flex-col items-start p-6 md:p-10">
-      {/* Top-left back arrow */}
-      <div className="w-full">
-        <button
-          className="absolute top-8 left-8 hover:opacity-70 transition"
-          aria-label="Back"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft className="w-8 h-8 text-black" />
-        </button>
-      </div>
-
-      <div className="flex flex-col md:flex-row items-center md:items-start justify-center w-full gap-10 md:gap-16">
-        {/* Left column: avatar + name */}
-        <div className="flex flex-col items-center md:items-start flex-1 md:flex-none">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleFileChange}
-          />
-
-          {/* Avatar */}
+    // Página completamente blanca; contenido centrado verticalmente y distribuido horizontalmente en desktop
+    <div className="min-h-screen w-full bg-white flex items-center justify-center p-4 md:p-8">
+      {/* Contenedor principal: en mobile columna, en md fila; en md ocupa todo el ancho disponible (max-w-6xl) */}
+      <div className="w-full md:max-w-6xl flex flex-col md:flex-row items-center md:items-start md:justify-between gap-8">
+        {/* Columna izquierda: avatar + nombre + badge */}
+        <div className="flex items-center md:items-center gap-4 md:gap-8 md:flex-col md:flex-1">
           <div
-            onClick={handleAvatarClick}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => (e.key === "Enter" ? handleAvatarClick() : null)}
-            className="bg-[#2B2F38] w-[200px] h-[200px] md:w-[260px] md:h-[260px] rounded-full flex items-center justify-center cursor-pointer hover:opacity-90 transition overflow-hidden"
+            className="bg-[#2B2F38] rounded-full flex items-center justify-center overflow-hidden
+                          w-20 h-20 md:w-[260px] md:h-[260px] flex-shrink-0"
           >
-            {preview ? (
-              <img
-                src={preview}
-                alt="Avatar Preview"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <User className="text-white w-24 h-24 md:w-36 md:h-36 opacity-95" />
-            )}
+            <User className="text-white w-10 h-10 md:w-36 md:h-36" />
           </div>
 
-          {/* Name */}
-          <h1 className="text-[#23262B] font-bold text-4xl md:text-6xl mt-6">
-            Wheeler
-          </h1>
+          <div className="flex flex-col items-start md:items-start text-left">
+            <h1 className="text-[#1F2937] font-bold text-2xl md:text-6xl leading-tight">
+              User
+            </h1>
 
-          {/* Frecuent badge */}
-          <div className="flex items-center gap-2 mt-3">
-            <div className="inline-flex items-center gap-2 bg-[#F3F0F0] px-3 py-1 rounded-full shadow-sm">
+            <div className="flex items-center gap-2 mt-2 bg-[#EEEEEE] px-3 py-1 rounded-xl inline-flex">
               <Star className="w-4 h-4 text-black" />
-              <span className="text-black font-medium text-sm md:text-base">
-                Frecuent
-              </span>
+              <span className="text-black font-medium text-sm">Frequent</span>
             </div>
           </div>
         </div>
 
-        {/* Right column: menu */}
-        <div className="flex flex-col gap-4 w-full max-w-md">
+        {/* Columna derecha: menú grande y espaciado */}
+        <div className="w-full md:flex-1 flex flex-col gap-4">
           {menuItems.map((item, i) => (
             <button
               key={i}
-              className="flex items-center justify-between bg-[#F3EFEE] rounded-xl px-4 py-4 hover:bg-gray-200 transition"
+              className="flex items-center justify-between bg-[#F2EEEC] rounded-3xl px-4 py-2 hover:bg-[#E9E6E4] transition shadow-md w-full"
             >
-              <div className="flex items-center gap-4 text-black text-lg font-medium">
-                <div className="bg-white p-2 rounded-md shadow-sm">{item.icon}</div>
+              <div className="flex items-center gap-6 text-black text-xl md:text-2xl font-semibold">
+                <div className="bg-white p-4 rounded-lg shadow-sm flex items-center justify-center">
+                  {React.cloneElement(item.icon, {
+                    className: "w-9 h-9 text-black",
+                  })}
+                </div>
                 <span>{item.text}</span>
               </div>
-              <ChevronRight className="w-5 h-5 text-gray-500" />
+              <ChevronRight className="w-8 h-8 text-gray-400" />
             </button>
           ))}
 
-          {/* Exit row */}
-          <button className="flex items-center justify-between bg-[#F3EFEE] rounded-xl px-4 py-4 hover:bg-gray-200 transition">
-            <div className="flex items-center gap-4 text-[#F59739] text-lg font-medium">
-              <div className="bg-white p-2 rounded-md shadow-sm">
-                <LogOut className="w-5 h-5 text-[#F59739]" />
+          <button className="flex items-center justify-between bg-[#F2EEEC] rounded-3xl px-4 py-2 hover:bg-[#E9E6E4] transition shadow-md w-full">
+            <div className="flex items-center gap-6 text-[#F59739] text-xl md:text-2xl font-semibold">
+              <div className="bg-white p-4 rounded-lg shadow-sm flex items-center justify-center">
+                <LogOut className="w-9 h-9 text-[#F59739]" />
               </div>
               <span>Exit</span>
             </div>
-            <ChevronRight className="w-5 h-5 text-gray-500" />
+            <ChevronRight className="w-8 h-8 text-gray-400" />
           </button>
         </div>
       </div>
+
+      {/* Flecha de regreso (se muestra encima, posicionada relativa a la pantalla) */}
+      <button
+        className="fixed top-6 left-6 md:top-8 md:left-8 hover:opacity-80 transition"
+        aria-label="Back"
+      >
+        <ArrowLeft className="w-7 h-7 text-black" />
+      </button>
     </div>
   );
 }
