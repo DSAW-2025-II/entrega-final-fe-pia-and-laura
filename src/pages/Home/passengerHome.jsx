@@ -98,6 +98,7 @@ export default function HomePassenger() {
 
   const handleActivityClick = () => {
     setActive("activity");
+    navigate("/reservations");
   };
 
   const HomeIcon = (filled) => (
