@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { ArrowLeft, ArrowRight, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import uploadImage from "../assets/upload.png";
 
 export default function CarSignIn() {
   const carPhotoInputRef = useRef(null);
@@ -329,7 +330,7 @@ function FileUpload({ title, preview, fileName, error, inputRef, onFileChange })
           <img src={preview} alt={title} className="w-full h-full object-cover" />
         ) : (
           <img
-            src="/assets/upload.png"
+            src={uploadImage}
             alt="upload"
             className="w-[70px] h-[70px] md:w-[90px] md:h-[90px]"
           />

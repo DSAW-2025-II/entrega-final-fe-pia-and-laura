@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "lucide-react";
+import {rideCar} from "../assets/ridecar.png";
+import calendarBenefits from "../assets/calendarBenefits.png";
+import clockBenefits from "../assets/clockBenefits.png";
+import cardBenefits from "../assets/cardBenefits.png";
+import homeCar from "../assets/homeCar.png";
+import reservations from "../assets/reservations.png";
 
 export default function HomeDriver() {
   const [active, setActive] = useState("home");
@@ -153,7 +159,7 @@ export default function HomeDriver() {
 
           <div className="mt-3 md:mt-0 flex-shrink-0">
             <img
-              src="/assets/home-car.png"
+              src={homeCar}
               alt="car"
               className="w-28 h-20 md:w-60 md:h-36 object-contain drop-shadow-lg"
             />
@@ -166,7 +172,7 @@ export default function HomeDriver() {
           <div className="flex flex-row md:flex-col justify-center items-center gap-3 md:gap-5 w-full md:w-[30%]">
             <button className="flex-shrink-0 flex flex-col items-center bg-gray-100 rounded-xl p-3 w-28 md:w-full max-w-[280px] md:max-w-none h-28 md:h-auto justify-center">
               <img
-                src="assets/ridecar.png"
+                src={rideCar}
                 alt="New ride"
                 className="w-24 md:w-40 h-auto object-contain"
               />
@@ -177,7 +183,7 @@ export default function HomeDriver() {
               className="flex-shrink-0 flex flex-col items-center bg-gray-100 rounded-xl p-3 w-28 md:w-full max-w-[280px] md:max-w-none h-28 md:h-auto justify-center"
             >
               <img
-                src="assets/reservations.png"
+                src={reservations}
                 alt="Reservations"
                 className="w-24 md:w-40 h-auto object-contain"
               />
@@ -200,7 +206,7 @@ export default function HomeDriver() {
                   <div
                     className="w-5 h-5 md:w-12 md:h-6 bg-no-repeat bg-contain flex-shrink-0"
                     style={{
-                      backgroundImage: "url('assets/calendarBenefits.png')",
+                      backgroundImage: `url(${calendarBenefits})`,
                     }}
                     aria-hidden
                   ></div>
@@ -211,7 +217,7 @@ export default function HomeDriver() {
                   <div
                     className="w-5 h-5 md:w-12 md:h-6 bg-no-repeat bg-contain flex-shrink-0"
                     style={{
-                      backgroundImage: "url('assets/clockBenefits.png')",
+                      backgroundImage: `url(${clockBenefits})`,
                     }}
                     aria-hidden
                   ></div>
@@ -222,7 +228,7 @@ export default function HomeDriver() {
                   <div
                     className="w-5 h-5 md:w-12 md:h-6 bg-no-repeat bg-contain flex-shrink-0"
                     style={{
-                      backgroundImage: "url('assets/cardBenefits.png')",
+                      backgroundImage: `url(${cardBenefits})`,
                     }}
                     aria-hidden
                   ></div>
