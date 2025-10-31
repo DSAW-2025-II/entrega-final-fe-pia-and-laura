@@ -1,7 +1,8 @@
 import React, { useRef, useState, useEffect } from "react";
 import { ArrowLeft, ArrowRight, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import uploadImage from "../assets/upload.png";
+import uploadImage from "../../../assets/upload.png";
+
 
 export default function CarSignIn() {
   const carPhotoInputRef = useRef(null);
