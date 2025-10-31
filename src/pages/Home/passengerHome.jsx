@@ -6,7 +6,7 @@ export default function HomePassenger() {
   const [active, setActive] = useState("home");
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_URL;
+  const API_URL = import.meta.env.VITE_API_BASE_URL;
 
   // Obtener perfil del usuario
   useEffect(() => {

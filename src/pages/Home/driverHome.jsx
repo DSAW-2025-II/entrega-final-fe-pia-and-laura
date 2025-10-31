@@ -6,7 +6,7 @@ export default function HomeDriver() {
   const [active, setActive] = useState("home");
   const [user, setUser] = useState(null); // 👈 Estado del usuario
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_URL;
+  const API_URL = import.meta.env.VITE_API_BASE_URL;
 
   // 🔹 Obtener perfil del usuario autenticado al cargar el componente
   useEffect(() => {
