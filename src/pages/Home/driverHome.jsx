@@ -15,7 +15,7 @@ export default function HomeDriver() {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const res = await fetch(`${API_URL}/api/v1/user/profile`, {
+      const res = await fetch(`${API_URL}/user/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

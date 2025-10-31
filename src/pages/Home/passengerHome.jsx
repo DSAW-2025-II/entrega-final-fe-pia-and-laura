@@ -15,7 +15,7 @@ export default function HomePassenger() {
         const token = localStorage.getItem("token");
         if (!token) return;
 
-        const res = await fetch(`${API_URL}/api/v1/user/profile`, {
+        const res = await fetch(`${API_URL}/user/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -51,7 +51,7 @@ export default function HomePassenger() {
   }
 
   // Cambiar el rol del usuario en el backend
-  const res = await fetch(`${API_URL}/api/v1/user/update-role`, {
+  const res = await fetch(`${API_URL}/user/update-role`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
