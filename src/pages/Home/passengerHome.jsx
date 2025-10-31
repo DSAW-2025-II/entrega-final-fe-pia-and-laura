@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "lucide-react";
-import {rideCar} from "../assets/ridecar.png";
-import calendarBenefits from "../assets/calendarBenefits.png";
-import clockBenefits from "../assets/clockBenefits.png";
-import cardBenefits from "../assets/cardBenefits.png";
-import homeCar from "../assets/homeCar.png";
-import reservations from "../assets/reservations.png";
+import rideCar from "../../../assets/ridecar.png";
+import calendarBenefits from "../../../assets/calendarBenefits.png";
+import clockBenefits from "../../../assets/clockBenefits.png";
+import cardBenefits from "../../../assets/cardBenefits.png";
+import homeCar from "../../../assets/homeCar.png";
+import reservations from "../../../assets/reservations.png";
 
 
 export default function HomePassenger() {
