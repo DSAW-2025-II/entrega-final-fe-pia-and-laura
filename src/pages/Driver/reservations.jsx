@@ -143,7 +143,7 @@ export default function ReservationsPage() {
         setLoading(true);
         setError(null);
 
-        const res = await fetch(`${API_URL}/api/reservations/${user.id || user._id}`, {
+        const res = await fetch(`${API_URL}/reservations/${user.id || user._id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
