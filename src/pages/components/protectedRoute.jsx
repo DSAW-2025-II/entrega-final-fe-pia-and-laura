@@ -5,16 +5,16 @@ import { useAuth } from "@/context/AuthContext.jsx";
 export default function ProtectedRoute({ children, allowedRoles }) {
   const { user, isAuthenticated } = useAuth();
 
-  // Si no hay token ni usuario → redirigir al login
+  // 🔒 Si no hay sesión activa → redirigir al login
   if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Si hay roles específicos y el usuario no tiene permiso
+  // 🔑 Si hay roles específicos y el usuario no tiene permiso → redirigir a inicio
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     return <Navigate to="/start" replace />;
   }
 
-  // Si pasa todas las validaciones → renderizar el contenido
+  // ✅ Si pasa todas las validaciones, renderiza el contenido protegido
   return children;
 }

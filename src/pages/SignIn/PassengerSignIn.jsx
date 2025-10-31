@@ -1,9 +1,12 @@
 import React, { useRef, useState, useEffect } from "react";
 import { ArrowLeft, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext.jsx";
+
 
 export default function PassengerSignIn() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const fileInputRef = useRef(null);
   const [preview, setPreview] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -137,12 +140,26 @@ export default function PassengerSignIn() {
       const data = await res.json();
 
       if (!res.ok) {
-        setServerError(data.message || "Error al registrar usuario.");
-      } else {
-        localStorage.setItem("userRole", "passenger");
-        localStorage.setItem("isAuthenticated", "true");
-        navigate("/start");
-      }
+  setServerError(data.message || "Error al registrar usuario.");
+} else {
+  // ✅ Actualizar AuthContext de inmediato
+  login(
+    {
+      id: data.user.id,
+      email: data.user.email,
+      role: data.user.role,
+    },
+    data.token
+  );
+
+  // ✅ Redirigir según el rol
+  if (data.user.role === "passenger") {
+    navigate("/passengerHome");
+  } else if (data.user.role === "driver") {
+    navigate("/driverSignIn");
+  }
+}
+
     } catch (err) {
       console.error("Error al conectar:", err);
       setServerError("⚠️ Error al conectar con el servidor.");

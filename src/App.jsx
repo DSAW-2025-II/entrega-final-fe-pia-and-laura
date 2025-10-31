@@ -9,6 +9,8 @@ import DriverHome from "./pages/Home/driverHome.jsx";
 import PassengerHome from "./pages/Home/passengerHome.jsx";
 import UserProfile from "./pages/UserProfile.jsx";
 import CarSignIn from "./pages/SignIn/CarSignIn.jsx";
+import ReservationsPage from "./pages/Driver/reservations.jsx";
+
 
 function App() {
   return (
@@ -20,9 +22,10 @@ function App() {
         <Route path="/driverSignIn" element={<DriverSignIn />} />
         <Route path="/passengerSignIn" element={<PassengerSignIn />} />
         <Route path="/CarSignIn" element={<CarSignIn />} />
-        <Route path="/driverHome" element={<ProtectedRoute><DriverHome /></ProtectedRoute>} />
+        <Route path="/driverHome" element={<DriverHome />} />
         <Route path="/passengerHome" element={<ProtectedRoute><PassengerHome /></ProtectedRoute>} />
         <Route path="/userProfile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+        <Route path="/reservations" element={<ProtectedRoute allowedRoles={["driver", "passenger"]}><ReservationsPage /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );

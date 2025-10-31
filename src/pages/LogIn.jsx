@@ -46,20 +46,13 @@ export default function LogIn() {
       throw new Error(data.message || "Incorrect email or password.");
     }
     
-    // ✅ Guarda el token
-    login(data.user, data.token);
+    // ✅ Guarda datos en el contexto global
     
+    login(data.user, data.token);
     if (data.token) {
       localStorage.setItem("token", data.token);
-    }
-
-
-      // ✅ Guarda datos en el contexto global
-login(data.user, data.token);
-
-    // ✅ Guarda token en localStorage para futuras peticiones
-    if (data.token) {
-      localStorage.setItem("token", data.token);
+      // ✅ Guarda token y usuario en localStorage para futuras peticiones
+      localStorage.setItem("user", JSON.stringify(data.user)); // <--- esta línea nueva
     }
     
     setMessage({ type: "success", text: "Login successful!" });
