@@ -123,8 +123,23 @@ export default function CarSignIn() {
       console.log("POST a:", url);
 
       const token = localStorage.getItem("token");
-      const headers = {};
-      if (token) headers["Authorization"] = `Bearer ${token}`;
+      if (!token) {
+        console.error("❌ No token found in localStorage");
+        setFormMessage({ type: "error", text: "You must log in before registering your car." });
+        return;
+      }
+
+      console.log("📦 Token enviado:", token);
+
+      const headers = {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+      };
+      console.log("🚀 Sending request:", {
+      url,
+      headers,
+      hasFormData: formData instanceof FormData,
+      });
 
       const response = await fetch(url, {
         method: "POST",

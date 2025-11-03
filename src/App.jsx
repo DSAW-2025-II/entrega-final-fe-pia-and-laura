@@ -10,6 +10,7 @@ import PassengerHome from "./pages/Home/passengerHome.jsx";
 import UserProfile from "./pages/UserProfile.jsx";
 import CarSignIn from "./pages/SignIn/CarSignIn.jsx";
 import ReservationsPage from "./pages/Driver/reservations.jsx";
+import Settings from "./pages/Driver/settings.jsx";
 
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
         <Route path="/passengerHome" element={<ProtectedRoute><PassengerHome /></ProtectedRoute>} />
         <Route path="/userProfile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
         <Route path="/reservations" element={<ProtectedRoute allowedRoles={["driver", "passenger"]}><ReservationsPage /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );
