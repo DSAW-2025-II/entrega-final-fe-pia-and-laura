@@ -31,7 +31,7 @@ useEffect(() => {
         return;
       }
 
-      const res = await fetch(`${API_URL}/user/profile`, {
+      const res = await fetch(`${API_URL}/user/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
