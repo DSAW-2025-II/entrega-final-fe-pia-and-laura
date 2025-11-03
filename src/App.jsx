@@ -11,7 +11,7 @@ import UserProfile from "./pages/UserProfile.jsx";
 import CarSignIn from "./pages/SignIn/CarSignIn.jsx";
 import ReservationsPage from "./pages/Driver/reservations.jsx";
 import Settings from "./pages/Driver/settings.jsx";
-
+import CarSettings from "./pages/Driver/carSettings.jsx";
 
 function App() {
   return (
@@ -28,6 +28,7 @@ function App() {
         <Route path="/userProfile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
         <Route path="/reservations" element={<ProtectedRoute allowedRoles={["driver", "passenger"]}><ReservationsPage /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/carSettings" element={<ProtectedRoute><CarSettings /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );

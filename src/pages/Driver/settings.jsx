@@ -113,6 +113,9 @@ export default function Settings() {
   if (!user) return <div className="text-center mt-20">Loading...</div>;
 
   const isDriver = user.role === "driver";
+    const handleCarSettings = () => {
+    navigate("/carSettings");
+  };
 
   return (
     <div className="h-screen overflow-y-auto md:overflow-hidden bg-white rounded-2xl flex flex-col p-6 md:p-12 relative">
