@@ -20,7 +20,7 @@ export default function Settings() {
         const token = localStorage.getItem("token");
         if (!token) return console.error("No token found");
 
-        const res = await fetch(`${API_URL}/users/me`, {
+        const res = await fetch(`${API_URL}/user/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -54,7 +54,7 @@ export default function Settings() {
   // 🔹 Validar correo existente antes de guardar
   const validateEmail = async (email) => {
     try {
-      const res = await fetch(`${API_URL}/users/check-email?email=${email}`);
+      const res = await fetch(`${API_URL}/user/check-email?email=${email}`);
       if (res.status === 409) {
         setEmailError("This email is already registered.");
         return false;
@@ -90,7 +90,7 @@ export default function Settings() {
         form.append(key, formData[key]);
       });
 
-      const res = await fetch(`${API_URL}/users/${user._id}`, {
+      const res = await fetch(`${API_URL}/user/${user._id}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
