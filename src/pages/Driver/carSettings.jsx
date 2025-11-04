@@ -1,16 +1,97 @@
-import { useState } from "react";
-import { ArrowLeft, Star, Settings, Home, Activity, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Star, Home, Activity, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function CarModel() {
-  const [licensePlate, setLicensePlate] = useState("ABC 123");
-  const [capacity, setCapacity] = useState("");
-  const [make, setMake] = useState("");
-  const [model, setModel] = useState("");
+  const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_BASE_URL;
+
+  const [car, setCar] = useState({
+    licensePlate: "",
+    make: "",
+    model: "",
+    capacity: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null); // ✅ para mostrar mensajes
+  const [messageType, setMessageType] = useState(""); // "error" o "success"
+
+  // 🔹 Obtener info del carro del usuario (driver)
+  useEffect(() => {
+    const fetchCar = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return console.error("No token found");
+
+        const res = await fetch(`${API_URL}/car/myCar`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) throw new Error("Error fetching car data");
+        const data = await res.json();
+        setCar(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchCar();
+  }, [API_URL]);
+
+  // 🔹 Manejar cambios en los campos
+  const handleChange = (e) => {
+    setCar({ ...car, [e.target.name]: e.target.value });
+  };
+
+  // 🔹 Guardar cambios del carro
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      setMessage(null);
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setMessage("No token found");
+        setMessageType("error");
+        return;
+      }
+
+      const res = await fetch(`${API_URL}/car/update`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(car),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        // 🔴 Mostrar mensaje de error del backend
+        setMessage(data.message || "Error updating car");
+        setMessageType("error");
+      } else {
+        // ✅ Mostrar mensaje de éxito
+        setMessage("Car information updated successfully!");
+        setMessageType("success");
+        setTimeout(() => navigate("/settings"), 1500);
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage("Error updating car data");
+      setMessageType("error");
+    } finally {
+      setLoading(false);
+      setTimeout(() => setMessage(null), 4000); // mensaje desaparece
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white rounded-2xl flex flex-col items-center relative p-8">
       {/* Botón atrás */}
-      <button className="absolute top-6 left-6">
+      <button className="absolute top-6 left-6" onClick={() => navigate(-1)}>
         <ArrowLeft size={32} className="text-black" />
       </button>
 
@@ -32,26 +113,30 @@ export default function CarModel() {
 
       {/* Contenedor principal */}
       <div className="flex flex-col items-center mt-28">
-        {/* Icono usuario */}
         <div className="w-48 h-48 bg-gray-800 rounded-full flex items-center justify-center mb-6">
           <User size={96} className="text-white" />
         </div>
 
-        {/* Título y etiqueta */}
         <div className="flex items-center gap-4 mb-10">
           <h1 className="text-6xl font-bold text-gray-800">Car Model</h1>
           <div className="flex items-center bg-gray-200 rounded-xl px-4 py-2">
             <Star fill="black" className="text-black mr-2" />
-            <span className="text-2xl font-medium text-black">Frecuent</span>
+            <span className="text-2xl font-medium text-black">Frequent</span>
           </div>
         </div>
 
-        {/* Icono configuración */}
-        <button className="absolute right-20 top-1/2">
-          <Settings size={28} className="text-gray-600" />
-        </button>
+        {/* Mensaje dinámico */}
+        {message && (
+          <p
+            className={`mb-6 text-2xl font-semibold ${
+              messageType === "error" ? "text-red-600" : "text-green-600"
+            }`}
+          >
+            {message}
+          </p>
+        )}
 
-        {/* Campos de entrada */}
+        {/* Formulario */}
         <div className="grid grid-cols-2 gap-12 mb-12">
           <div className="flex flex-col">
             <label className="text-gray-500 text-2xl mb-2 font-semibold">
@@ -59,8 +144,9 @@ export default function CarModel() {
             </label>
             <input
               type="text"
-              value={licensePlate}
-              onChange={(e) => setLicensePlate(e.target.value)}
+              name="licensePlate"
+              value={car.licensePlate}
+              onChange={handleChange}
               className="bg-gray-200 rounded-xl text-2xl px-4 py-3 text-gray-900 font-semibold focus:outline-none"
             />
           </div>
@@ -70,8 +156,9 @@ export default function CarModel() {
               Make
             </label>
             <select
-              value={make}
-              onChange={(e) => setMake(e.target.value)}
+              name="make"
+              value={car.make}
+              onChange={handleChange}
               className="bg-gray-200 rounded-xl text-2xl px-4 py-3 text-gray-900 font-semibold focus:outline-none"
             >
               <option value="">Select your car make</option>
@@ -86,8 +173,9 @@ export default function CarModel() {
               Vehicle capacity
             </label>
             <select
-              value={capacity}
-              onChange={(e) => setCapacity(e.target.value)}
+              name="capacity"
+              value={car.capacity}
+              onChange={handleChange}
               className="bg-gray-200 rounded-xl text-2xl px-4 py-3 text-gray-900 font-semibold focus:outline-none"
             >
               <option value="">Select vehicle capacity</option>
@@ -103,8 +191,9 @@ export default function CarModel() {
               Model
             </label>
             <select
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
+              name="model"
+              value={car.model}
+              onChange={handleChange}
               className="bg-gray-200 rounded-xl text-2xl px-4 py-3 text-gray-900 font-semibold focus:outline-none"
             >
               <option value="">Select your car model</option>
@@ -116,8 +205,12 @@ export default function CarModel() {
         </div>
 
         {/* Botón Done */}
-        <button className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-3xl px-20 py-3 rounded-xl shadow-md">
-          Done
+        <button
+          onClick={handleSave}
+          disabled={loading}
+          className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-3xl px-20 py-3 rounded-xl shadow-md"
+        >
+          {loading ? "Saving..." : "Done"}
         </button>
       </div>
     </div>
