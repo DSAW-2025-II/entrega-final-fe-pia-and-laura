@@ -216,62 +216,60 @@ export default function Settings() {
           </div>
         </div>
       </div>
+{/* 🔹 Formulario */}
+<div className="grid md:grid-cols-2 gap-8 mt-16 items-end">
+  <div>
+    <label className="block text-gray-500 text-xl font-semibold mb-2">
+      ID
+    </label>
+    <input
+      name="idNumber"
+      value={formData.idNumber || ""}
+      onChange={handleChange}
+      className="w-full bg-[#EEEEEE] text-black rounded-2xl px-4 py-3 text-lg font-semibold outline-none"
+    />
+  </div>
 
-      {/* 🔹 Formulario */}
-      <div className="grid md:grid-cols-2 gap-8 mt-16">
-        <div>
-          <label className="block text-gray-500 text-xl font-semibold mb-2">
-            ID
-          </label>
-          <input
-            name="idNumber"
-            value={formData.idNumber || ""}
-            onChange={handleChange}
-            className="w-full bg-[#EEEEEE] text-black rounded-2xl px-4 py-3 text-lg font-semibold outline-none"
-          />
-        </div>
+  <div>
+    <label className="block text-gray-500 text-xl font-semibold mb-2">
+      Email
+    </label>
+    <input
+      name="email"
+      value={formData.email || ""}
+      onChange={handleChange}
+      className={`w-full bg-[#EEEEEE] text-black rounded-2xl px-4 py-3 text-lg font-semibold outline-none ${
+        emailError ? "border border-[#F59739]" : ""
+      }`}
+    />
+    {emailError && (
+      <p className="text-[#F59739] mt-1 font-medium">{emailError}</p>
+    )}
+  </div>
 
-        <div>
-          <label className="block text-gray-500 text-xl font-semibold mb-2">
-            Email
-          </label>
-          <input
-            name="email"
-            value={formData.email || ""}
-            onChange={handleChange}
-            className={`w-full bg-[#EEEEEE] text-black rounded-2xl px-4 py-3 text-lg font-semibold outline-none ${
-              emailError ? "border border-[#F59739]" : ""
-            }`}
-          />
-          {emailError && (
-            <p className="text-[#F59739] mt-1 font-medium">{emailError}</p>
-          )}
-        </div>
+  <div>
+    <label className="block text-gray-500 text-xl font-semibold mb-2">
+      Phone number
+    </label>
+    <input
+      name="phone"
+      value={formData.phone || ""}
+      onChange={handleChange}
+      className="w-full bg-[#EEEEEE] text-black rounded-2xl px-4 py-3 text-lg font-semibold outline-none"
+    />
+  </div>
 
-        <div>
-          <label className="block text-gray-500 text-xl font-semibold mb-2">
-            Phone number
-          </label>
-          <input
-            name="phone"
-            value={formData.phone || ""}
-            onChange={handleChange}
-            className="w-full bg-[#EEEEEE] text-black rounded-2xl px-4 py-3 text-lg font-semibold outline-none"
-          />
-        </div>
-      </div>
-
-      {/* 🔹 Botón Guardar */}
-      <div className="flex items-center justify-end gap-3 mt-12">
-        <button
-            onClick={isDriver ? handleCarSettings : handleSave}
-            className={`${
-            isDriver ? "bg-emerald-500" : "bg-amber-500"
-            } text-white text-2xl font-bold px-12 py-3 rounded-xl hover:opacity-90`}
-        >
-            {isDriver ? "Car settings" : "Done"}
-        </button>
-      </div>
-    </div>
-  );
+  {/* 🔹 Botón en el mismo nivel que el campo Phone en desktop */}
+  <div className="flex justify-end md:justify-start mt-4 md:mt-0">
+    <button
+      onClick={isDriver ? handleCarSettings : handleSave}
+      className={`${
+        isDriver ? "bg-emerald-500" : "bg-amber-500"
+      } text-white text-2xl font-bold px-12 py-3 rounded-xl hover:opacity-90 w-full md:w-auto`}
+    >
+      {isDriver ? "Car settings" : "Done"}
+    </button>
+  </div>
+</div>
+    </div>);
 }
