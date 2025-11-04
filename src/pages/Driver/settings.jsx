@@ -113,9 +113,53 @@ export default function Settings() {
   if (!user) return <div className="text-center mt-20">Loading...</div>;
 
   const isDriver = user.role === "driver";
-    const handleCarSettings = () => {
+  const handleCarSettings = async () => {
+  setLoading(true);
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("No token found");
+      return;
+    }
+
+    // 🔸 Validar que el email no esté repetido (solo si cambió)
+    if (formData.email && formData.email !== user.email) {
+      const valid = await validateEmail(formData.email);
+      if (!valid) {
+        setLoading(false);
+        return;
+      }
+    }
+
+    // 🔸 Crear FormData con los datos actualizados
+    const form = new FormData();
+    Object.keys(formData).forEach((key) => {
+      form.append(key, formData[key]);
+    });
+
+    // 🔸 Guardar los cambios
+    const res = await fetch(`${API_URL}/user/${user._id}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: form,
+    });
+
+    if (!res.ok) throw new Error("Error updating user");
+    const updatedUser = await res.json();
+    setUser(updatedUser);
+
+    // ✅ Mostrar mensaje y redirigir
+    alert("Profile updated successfully! Redirecting to Car Settings...");
     navigate("/carSettings");
-  };
+  } catch (err) {
+    console.error(err);
+    alert("Error updating profile");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="h-screen overflow-y-auto md:overflow-hidden bg-white rounded-2xl flex flex-col p-6 md:p-12 relative">
@@ -228,7 +272,6 @@ export default function Settings() {
             {isDriver ? "Car settings" : "Done"}
         </button>
       </div>
-
     </div>
   );
 }
