@@ -12,8 +12,6 @@ export default function Settings() {
   const fileInputRef = useRef(null);
 
   const API_URL = import.meta.env.VITE_API_BASE_URL;
-  const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-  const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 
   // 🔹 Obtener usuario actual
   useEffect(() => {
@@ -44,7 +42,7 @@ export default function Settings() {
     if (e.target.name === "email") setEmailError("");
   };
 
-  // 🔹 Subir imagen a Cloudinary y actualizar preview
+  // 🔹 Subir imagen al backend (no directamente a Cloudinary)
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -55,20 +53,29 @@ export default function Settings() {
 
     try {
       setLoading(true);
-      const formDataCloud = new FormData();
-      formDataCloud.append("file", file);
-      formDataCloud.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("No token found");
+        return;
+      }
 
-      const uploadRes = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-        { method: "POST", body: formDataCloud }
-      );
+      const formDataFile = new FormData();
+      formDataFile.append("file", file);
+
+      // Enviar archivo al backend (el backend se encarga de Cloudinary)
+      const uploadRes = await fetch(`${API_URL}/upload`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formDataFile,
+      });
+
+      if (!uploadRes.ok) throw new Error("Error uploading image");
 
       const uploadData = await uploadRes.json();
-      if (!uploadRes.ok) throw new Error(uploadData.error?.message || "Error uploading image");
 
-      // Guardar URL de Cloudinary en el formData
-      setFormData((prev) => ({ ...prev, profileImage: uploadData.secure_url }));
+      // Guardar URL devuelta por el backend
+      setFormData((prev) => ({ ...prev, profileImage: uploadData.url }));
+
       alert("Photo uploaded successfully!");
     } catch (err) {
       console.error("Error uploading image:", err);
@@ -129,7 +136,7 @@ export default function Settings() {
 
     return newErrors;
   };
-  
+
   // 🔹 Guardar cambios generales
   const handleSave = async () => {
     setLoading(true);
@@ -144,7 +151,7 @@ export default function Settings() {
       const token = localStorage.getItem("token");
       if (!token) return alert("No token found");
 
-      // Email único
+      // Validar email si cambió
       if (formData.email && formData.email !== user.email) {
         const valid = await validateEmail(formData.email);
         if (!valid) {
@@ -176,10 +183,7 @@ export default function Settings() {
     }
   };
 
-  if (!user) return <div className="text-center mt-20">Loading...</div>;
-  const isDriver = user.role === "driver";
-
-  // ✅ Corregido: función handleCarSettings
+  // ✅ Guardar y redirigir a Car Settings (para conductores)
   const handleCarSettings = async () => {
     setLoading(true);
     try {
@@ -189,7 +193,6 @@ export default function Settings() {
         return;
       }
 
-      // Validar email si cambió
       if (formData.email && formData.email !== user.email) {
         const valid = await validateEmail(formData.email);
         if (!valid) {
@@ -198,13 +201,11 @@ export default function Settings() {
         }
       }
 
-      // Crear FormData con los datos del usuario
       const form = new FormData();
       Object.keys(formData).forEach((key) => {
         form.append(key, formData[key]);
       });
 
-      // Actualizar usuario
       const res = await fetch(`${API_URL}/user/${user._id}`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
@@ -225,6 +226,18 @@ export default function Settings() {
     }
   };
 
+  // ✅ Definir si el usuario es conductor
+  const isDriver = user?.role === "driver" || user?.isDriver === true;
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-600">
+        Cargando configuración...
+      </div>
+    );
+  }
+
+
   return (
     <div className="min-h-screen bg-white rounded-2xl flex flex-col p-6 md:p-10 relative pb-20">
       {/* 🔙 Back Button */}
@@ -242,22 +255,19 @@ export default function Settings() {
           onClick={() => fileInputRef.current.click()}
         >
           {preview ? (
-            <img src={preview} alt="preview" className="w-full h-full object-cover" />
-          ) : user.profileImage ? (
-            <img
-              src={
-                user.profileImage.startsWith("http")
-                  ? user.profileImage
-                  : `${API_URL}${user.profileImage}`
-              }
-              alt="user"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <span className="text-6xl font-bold text-gray-700">
-              {user.name?.[0]?.toUpperCase()}
-            </span>
-          )}
+  <img src={preview} alt="preview" className="w-full h-full object-cover" />
+) : user?.profileImage ? (
+  <img
+    src={user.profileImage}
+    alt="Profile"
+    className="w-full h-full object-cover"
+  />
+) : (
+  <span className="text-6xl font-bold text-gray-700">
+    {user?.name?.[0]?.toUpperCase() || "?"}
+  </span>
+)}
+
 
           {/* 🔸 Icono cámara hover */}
           <div className="absolute bottom-2 right-2 bg-[#F59739] p-2 rounded-full transition-transform duration-300 transform group-hover:scale-110 group-hover:rotate-6">
