@@ -12,6 +12,8 @@ export default function Settings() {
   const fileInputRef = useRef(null);
 
   const API_URL = import.meta.env.VITE_API_BASE_URL;
+  const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+  const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 
   // 🔹 Obtener usuario actual
   useEffect(() => {
@@ -42,13 +44,38 @@ export default function Settings() {
     if (e.target.name === "email") setEmailError("");
   };
 
-  // 🔹 Manejar cambio de foto
-  const handleImageChange = (e) => {
+  // 🔹 Subir imagen a Cloudinary y actualizar preview
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    setPreview(url);
-    setFormData({ ...formData, profileImage: file });
+
+    // Mostrar preview local
+    const localPreview = URL.createObjectURL(file);
+    setPreview(localPreview);
+
+    try {
+      setLoading(true);
+      const formDataCloud = new FormData();
+      formDataCloud.append("file", file);
+      formDataCloud.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+      const uploadRes = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+        { method: "POST", body: formDataCloud }
+      );
+
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok) throw new Error(uploadData.error?.message || "Error uploading image");
+
+      // Guardar URL de Cloudinary en el formData
+      setFormData((prev) => ({ ...prev, profileImage: uploadData.secure_url }));
+      alert("Photo uploaded successfully!");
+    } catch (err) {
+      console.error("Error uploading image:", err);
+      alert("Error uploading image");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 🔹 Validar correo existente antes de guardar
@@ -66,17 +93,58 @@ export default function Settings() {
     }
   };
 
-  // 🔹 Guardar cambios
+  // 🔹 Validar formulario antes de guardar
+  const validateForm = () => {
+    const newErrors = {};
+    const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+    const idRegex = /^0{4}\d{6}$/;
+    const emailRegex = /^[A-Za-z0-9._%+-]+@unisabana\.edu\.co$/;
+    const phoneRegex = /^3\d{9}$/;
+    const passwordRegex =
+      /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\[\]{};':"\\|,.<>\/?]).{8,}$/;
+
+    if (!formData.name?.trim()) newErrors.name = "Required field *";
+    else if (!nameRegex.test(formData.name))
+      newErrors.name = "Only letters allowed *";
+
+    if (!formData.lastName?.trim()) newErrors.lastName = "Required field *";
+    else if (!nameRegex.test(formData.lastName))
+      newErrors.lastName = "Only letters allowed *";
+
+    if (!formData.universityId?.trim())
+      newErrors.universityId = "Required field *";
+    else if (!idRegex.test(formData.universityId))
+      newErrors.universityId = "Invalid ID format *";
+
+    if (!formData.email?.trim()) newErrors.email = "Required field *";
+    else if (!emailRegex.test(formData.email))
+      newErrors.email = "Must end with @unisabana.edu.co *";
+
+    if (!formData.phone?.trim()) newErrors.phone = "Required field *";
+    else if (!phoneRegex.test(formData.phone))
+      newErrors.phone = "Must start with 3 and have 10 digits *";
+
+    if (formData.password && !passwordRegex.test(formData.password))
+      newErrors.password = "8 chars, 1 uppercase, 1 number, 1 symbol *";
+
+    return newErrors;
+  };
+  
+  // 🔹 Guardar cambios generales
   const handleSave = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("No token found");
+      const errors = validateForm();
+      if (Object.keys(errors).length > 0) {
+        setLoading(false);
+        alert("Please correct the highlighted fields.");
         return;
       }
 
-      // Validar correo único
+      const token = localStorage.getItem("token");
+      if (!token) return alert("No token found");
+
+      // Email único
       if (formData.email && formData.email !== user.email) {
         const valid = await validateEmail(formData.email);
         if (!valid) {
@@ -92,15 +160,13 @@ export default function Settings() {
 
       const res = await fetch(`${API_URL}/user/${user._id}`, {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
         body: form,
       });
 
       if (!res.ok) throw new Error("Error updating user");
       const updatedUser = await res.json();
-      setUser(updatedUser);
+      setUser(updatedUser.user);
       alert("Profile updated successfully!");
     } catch (err) {
       console.error(err);
@@ -111,58 +177,56 @@ export default function Settings() {
   };
 
   if (!user) return <div className="text-center mt-20">Loading...</div>;
-
   const isDriver = user.role === "driver";
-  const handleCarSettings = async () => {
-  setLoading(true);
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("No token found");
-      return;
-    }
 
-    // 🔸 Validar que el email no esté repetido (solo si cambió)
-    if (formData.email && formData.email !== user.email) {
-      const valid = await validateEmail(formData.email);
-      if (!valid) {
-        setLoading(false);
+  // ✅ Corregido: función handleCarSettings
+  const handleCarSettings = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("No token found");
         return;
       }
+
+      // Validar email si cambió
+      if (formData.email && formData.email !== user.email) {
+        const valid = await validateEmail(formData.email);
+        if (!valid) {
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Crear FormData con los datos del usuario
+      const form = new FormData();
+      Object.keys(formData).forEach((key) => {
+        form.append(key, formData[key]);
+      });
+
+      // Actualizar usuario
+      const res = await fetch(`${API_URL}/user/${user._id}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      });
+
+      if (!res.ok) throw new Error("Error updating user");
+      const updatedUser = await res.json();
+      setUser(updatedUser.user);
+
+      alert("Profile updated successfully! Redirecting to Car Settings...");
+      navigate("/carSettings");
+    } catch (err) {
+      console.error(err);
+      alert("Error updating profile");
+    } finally {
+      setLoading(false);
     }
-
-    // 🔸 Crear FormData con los datos actualizados
-    const form = new FormData();
-    Object.keys(formData).forEach((key) => {
-      form.append(key, formData[key]);
-    });
-
-    // 🔸 Guardar los cambios
-    const res = await fetch(`${API_URL}/user/${user._id}`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: form,
-    });
-
-    if (!res.ok) throw new Error("Error updating user");
-    const updatedUser = await res.json();
-    setUser(updatedUser);
-
-    // ✅ Mostrar mensaje y redirigir
-    alert("Profile updated successfully! Redirecting to Car Settings...");
-    navigate("/carSettings");
-  } catch (err) {
-    console.error(err);
-    alert("Error updating profile");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
-    <div className="h-screen overflow-y-auto md:overflow-hidden bg-white rounded-2xl flex flex-col p-6 md:p-12 relative">
+    <div className="min-h-screen bg-white rounded-2xl flex flex-col p-6 md:p-10 relative pb-20">
       {/* 🔙 Back Button */}
       <button
         onClick={() => navigate(-1)}
@@ -172,20 +236,20 @@ export default function Settings() {
       </button>
 
       {/* 🔹 Avatar + Nombre */}
-      <div className="flex flex-col md:flex-row items-center gap-8 mt-20">
+      <div className="flex flex-col md:flex-row items-center gap-6 mt-8">
         <div
-          className="relative w-40 h-40 md:w-72 md:h-72 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center"
+          className="relative w-28 h-28 md:w-56 md:h-56 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center cursor-pointer group transition-all duration-200"
           onClick={() => fileInputRef.current.click()}
         >
           {preview ? (
-            <img
-              src={preview}
-              alt="preview"
-              className="w-full h-full object-cover"
-            />
+            <img src={preview} alt="preview" className="w-full h-full object-cover" />
           ) : user.profileImage ? (
             <img
-              src={user.profileImage}
+              src={
+                user.profileImage.startsWith("http")
+                  ? user.profileImage
+                  : `${API_URL}${user.profileImage}`
+              }
               alt="user"
               className="w-full h-full object-cover"
             />
@@ -194,9 +258,17 @@ export default function Settings() {
               {user.name?.[0]?.toUpperCase()}
             </span>
           )}
-          <div className="absolute bottom-2 right-2 bg-[#F59739] p-2 rounded-full">
+
+          {/* 🔸 Icono cámara hover */}
+          <div className="absolute bottom-2 right-2 bg-[#F59739] p-2 rounded-full transition-transform duration-300 transform group-hover:scale-110 group-hover:rotate-6">
             <Camera size={22} className="text-white" />
           </div>
+
+          {/* 🔸 Overlay al pasar el mouse */}
+          <div className="absolute inset-0 bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
+            <span className="text-white font-semibold text-lg">Change photo</span>
+          </div>
+
           <input
             ref={fileInputRef}
             type="file"
@@ -216,20 +288,50 @@ export default function Settings() {
           </div>
         </div>
       </div>
-{/* 🔹 Formulario */}
-<div className="grid md:grid-cols-2 gap-8 mt-16 items-end">
+
+{/* 🔹 Formulario de edición */}
+<div className="grid md:grid-cols-2 gap-6 mt-8">
+  {/* 🟠 Nombre */}
   <div>
     <label className="block text-gray-500 text-xl font-semibold mb-2">
-      ID
+      Name
     </label>
     <input
-      name="idNumber"
-      value={formData.idNumber || ""}
+      name="name"
+      value={formData.name || ""}
       onChange={handleChange}
       className="w-full bg-[#EEEEEE] text-black rounded-2xl px-4 py-3 text-lg font-semibold outline-none"
     />
   </div>
 
+  {/* 🟠 Apellido */}
+  <div>
+    <label className="block text-gray-500 text-xl font-semibold mb-2">
+      Last name
+    </label>
+    <input
+      name="lastName"
+      value={formData.lastName || ""}
+      onChange={handleChange}
+      className="w-full bg-[#EEEEEE] text-black rounded-2xl px-4 py-3 text-lg font-semibold outline-none"
+    />
+  </div>
+
+  {/* 🟠 ID Universitario */}
+  <div>
+    <label className="block text-gray-500 text-xl font-semibold mb-2">
+      ID
+    </label>
+    <input
+      name="universityId"
+      value={formData.universityId || ""}
+      onChange={handleChange}
+      className="w-full bg-[#EEEEEE] text-black rounded-2xl px-4 py-3 text-lg font-semibold outline-none"
+      disabled // 🔹 Deshabilitado para que no se modifique manualmente
+    />
+  </div>
+
+  {/* 🟠 Email */}
   <div>
     <label className="block text-gray-500 text-xl font-semibold mb-2">
       Email
@@ -247,6 +349,7 @@ export default function Settings() {
     )}
   </div>
 
+  {/* 🟠 Teléfono */}
   <div>
     <label className="block text-gray-500 text-xl font-semibold mb-2">
       Phone number
@@ -259,32 +362,36 @@ export default function Settings() {
     />
   </div>
 
-  {/* 🟣 Campo nuevo: cambiar contraseña */}
+  {/* 🟠 Contraseña */}
   <div>
     <label className="block text-gray-500 text-xl font-semibold mb-2">
-      New Password
+      Change password
     </label>
     <input
       type="password"
       name="password"
       value={formData.password || ""}
       onChange={handleChange}
-      placeholder="Leave blank to keep current"
+      placeholder="New password"
       className="w-full bg-[#EEEEEE] text-black rounded-2xl px-4 py-3 text-lg font-semibold outline-none"
     />
   </div>
-
-  {/* 🔹 Botón en el mismo nivel que el campo Phone en desktop */}
-  <div className="flex justify-end md:justify-start mt-4 md:mt-0">
-    <button
-      onClick={isDriver ? handleCarSettings : handleSave}
-      className={`${
-        isDriver ? "bg-emerald-500" : "bg-amber-500"
-      } text-white text-2xl font-bold px-12 py-3 rounded-xl hover:opacity-90 w-full md:w-auto`}
-    >
-      {isDriver ? "Car settings" : "Done"}
-    </button>
-  </div>
 </div>
+
+{/* 🔸 Botón debajo del formulario */}
+<div className="flex justify-center mt-10">
+  <button
+    onClick={isDriver ? handleCarSettings : handleSave}
+    disabled={loading}
+    className={`${
+      isDriver ? "bg-emerald-500" : "bg-amber-500"
+    } text-white text-2xl font-bold px-12 py-3 rounded-xl hover:opacity-90 transition-all duration-200 ${
+      loading ? "opacity-70 cursor-not-allowed" : ""
+    }`}
+  >
+    {loading ? "Saving..." : isDriver ? "Car settings" : "Done"}
+  </button>
+</div>
+
     </div>);
 }
