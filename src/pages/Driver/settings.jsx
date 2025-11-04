@@ -160,10 +160,17 @@ export default function Settings() {
         }
       }
 
-      const form = new FormData();
-      Object.keys(formData).forEach((key) => {
-        form.append(key, formData[key]);
-      });
+const form = new FormData();
+
+Object.keys(formData).forEach((key) => {
+  if (key === "car" && formData.car && typeof formData.car === "object") {
+    // 👇 Solo enviamos el _id del carro si existe
+    form.append("car", formData.car._id || "");
+  } else {
+    form.append(key, formData[key]);
+  }
+});
+
 
       const res = await fetch(`${API_URL}/user/${user._id}`, {
         method: "PUT",
@@ -201,10 +208,15 @@ export default function Settings() {
         }
       }
 
-      const form = new FormData();
-      Object.keys(formData).forEach((key) => {
-        form.append(key, formData[key]);
-      });
+          const form = new FormData();
+          Object.keys(formData).forEach((key) => {
+            if (key === "car" && formData.car && typeof formData.car === "object") {
+              // 👇 Solo enviamos el _id del carro si existe
+              form.append("car", formData.car._id || "");
+            } else {
+              form.append(key, formData[key]);
+            }
+          });
 
       const res = await fetch(`${API_URL}/user/${user._id}`, {
         method: "PUT",
