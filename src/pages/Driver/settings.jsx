@@ -259,6 +259,21 @@ export default function Settings() {
     />
   </div>
 
+  {/* 🟣 Campo nuevo: cambiar contraseña */}
+  <div>
+    <label className="block text-gray-500 text-xl font-semibold mb-2">
+      New Password
+    </label>
+    <input
+      type="password"
+      name="password"
+      value={formData.password || ""}
+      onChange={handleChange}
+      placeholder="Leave blank to keep current"
+      className="w-full bg-[#EEEEEE] text-black rounded-2xl px-4 py-3 text-lg font-semibold outline-none"
+    />
+  </div>
+
   {/* 🔹 Botón en el mismo nivel que el campo Phone en desktop */}
   <div className="flex justify-end md:justify-start mt-4 md:mt-0">
     <button
