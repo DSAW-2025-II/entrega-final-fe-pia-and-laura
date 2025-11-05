@@ -18,7 +18,10 @@ export default function Settings() {
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (!token) return console.error("No token found");
+        if (!token) {
+          navigate("/login");
+          return console.error("No token found");
+        }
 
         const res = await fetch(`${API_URL}/user/me`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -57,7 +60,8 @@ const handleImageChange = async (e) => {
     setLoading(true);
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("No token found");
+      console.log("No token found");
+      navigate("/login");
       return;
     }
 
@@ -80,7 +84,7 @@ const handleImageChange = async (e) => {
     setPreview(null);
   } catch (err) {
     console.error("Error updating profile photo:", err);
-    alert("Error updating profile photo");
+    console.log("Error updating profile photo");
   } finally {
     setLoading(false);
   }
@@ -146,12 +150,15 @@ const handleImageChange = async (e) => {
       const errors = validateForm();
       if (Object.keys(errors).length > 0) {
         setLoading(false);
-        alert("Please correct the highlighted fields.");
+        console.log("Please correct the highlighted fields.");
         return;
       }
 
       const token = localStorage.getItem("token");
-      if (!token) return alert("No token found");
+      if (!token) {
+        navigate("/login");
+        return console.log("No token found");
+      }
 
       // Validar email si cambió
       if (formData.email && formData.email !== user.email) {
@@ -183,10 +190,10 @@ Object.keys(formData).forEach((key) => {
       if (!res.ok) throw new Error("Error updating user");
       const updatedUser = await res.json();
       setUser(updatedUser.user);
-      alert("Profile updated successfully!");
+      console.log("Profile updated successfully!");
     } catch (err) {
       console.error(err);
-      alert("Error updating profile");
+      console.log("Error updating profile");
     } finally {
       setLoading(false);
     }
@@ -198,7 +205,8 @@ Object.keys(formData).forEach((key) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("No token found");
+        console.log("No token found");
+        navigate("/login");
         return;
       }
 
@@ -230,11 +238,11 @@ Object.keys(formData).forEach((key) => {
       const updatedUser = await res.json();
       setUser(updatedUser.user);
 
-      alert("Profile updated successfully! Redirecting to Car Settings...");
+      console.log("Profile updated successfully! Redirecting to Car Settings...");
       navigate("/carSettings");
     } catch (err) {
       console.error(err);
-      alert("Error updating profile");
+      console.log("Error updating profile");
     } finally {
       setLoading(false);
     }

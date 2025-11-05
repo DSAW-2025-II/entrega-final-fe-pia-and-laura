@@ -6,7 +6,6 @@ import {
   HelpCircle,
   Settings,
   LogOut,
-  Star,
   ChevronRight,
   User,
   RefreshCcw,
@@ -25,6 +24,7 @@ export default function UserProfile() {
         const token = localStorage.getItem("token");
         if (!token) {
           console.warn("No hay token, redirige al login o muestra un mensaje");
+          navigate("/login");
           return;
         }
 
@@ -64,6 +64,7 @@ export default function UserProfile() {
     const token = localStorage.getItem("token");
     if (!token) {
       console.error("Token no encontrado");
+      navigate("/login");
       return;
     }
 
@@ -90,7 +91,6 @@ export default function UserProfile() {
     navigate("/CarSignIn");
   } catch (error) {
     console.error("Error cambiando rol:", error);
-    alert("Hubo un error cambiando tu rol. Inténtalo nuevamente.");
   }
 };
 
@@ -128,11 +128,6 @@ export default function UserProfile() {
             <h1 className="text-[#1F2937] font-bold text-2xl md:text-6xl leading-tight">
               {user?.name || "User"}
             </h1>
-
-            <div className="flex items-center gap-2 mt-2 bg-[#EEEEEE] px-3 py-1 rounded-xl inline-flex">
-              <Star className="w-4 h-4 text-black" />
-              <span className="text-black font-medium text-sm">Frequent</span>
-            </div>
           </div>
         </div>
 

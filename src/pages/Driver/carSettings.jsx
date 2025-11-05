@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { ArrowLeft, Home, Activity, User } from "lucide-react";
+import { ArrowLeft, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function CarModel() {
@@ -24,7 +24,10 @@ export default function CarModel() {
     const fetchCar = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (!token) return console.error("No token found");
+        if (!token) {
+          navigate("/login");
+          return console.error("No token found");
+        }
 
         const res = await fetch(`${API_URL}/car/myCar`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -60,7 +63,10 @@ export default function CarModel() {
 
   try {
     const token = localStorage.getItem("token");
-    if (!token) return console.error("No token found");
+    if (!token) {
+      navigate("/login");
+      return console.error("No token found");
+    }
 
     // ✅ Subimos la imagen directamente con el nombre correcto
     const formData = new FormData();
@@ -110,6 +116,7 @@ const handleSave = async () => {
     if (!token) {
       setMessage("No token found");
       setMessageType("error");
+      navigate("/login");
       return;
     }
 
@@ -147,6 +154,11 @@ const handleSave = async () => {
         carPhotoUrl: data.car.carPhotoUrl,
         newCarPhoto: null,
       }));
+
+      // ✅ Redirigir al perfil del usuario después de guardar
+      setTimeout(() => {
+        navigate("/UserProfile");
+      }, 1500); // pequeño retraso opcional para que se vea el mensaje de éxito
     }
   } catch (err) {
     console.error(err);
@@ -159,6 +171,7 @@ const handleSave = async () => {
 };
 
 
+
 return (
   <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 relative">
     {/* Botón atrás */}
@@ -166,25 +179,9 @@ return (
       <ArrowLeft size={32} className="text-black" />
     </button>
 
-    {/* Barra superior */}
-    <div className="absolute top-6 right-8 flex items-center gap-12 text-gray-600 text-lg">
-      <div className="flex flex-col items-center">
-        <Home size={28} className="text-gray-400" />
-        <span>Home</span>
-      </div>
-      <div className="flex flex-col items-center">
-        <Activity size={28} className="text-gray-400" />
-        <span>Activity</span>
-      </div>
-      <div className="flex flex-col items-center">
-        <User size={28} className="text-black" />
-        <span className="text-black font-medium">Account</span>
-      </div>
-    </div>
-
     {/* Contenedor principal */}
     <div className="flex flex-col items-center mt-24 w-full max-w-5xl">
-      {/* Imagen + Nombre + Frequent */}
+      {/* Imagen + Nombre */}
       <div className="flex flex-row items-center justify-center gap-8 mb-10 flex-wrap">
         {/* Imagen del carro con hover para cambiar */}
         <div className="relative w-48 h-48 rounded-full overflow-hidden shadow-md group cursor-pointer" onClick={handlePhotoClick}>

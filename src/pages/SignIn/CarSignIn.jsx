@@ -126,6 +126,7 @@ export default function CarSignIn() {
       if (!token) {
         console.error("❌ No token found in localStorage");
         setFormMessage({ type: "error", text: "You must log in before registering your car." });
+        navigate("/login");
         return;
       }
 

@@ -20,7 +20,10 @@ export default function HomeDriver() {
   const fetchUser = async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) return;
+      if (!token) {
+        navigate("/login");
+        return;
+      }
 
       const res = await fetch(`${API_URL}/user/me`, {
         headers: {

@@ -20,7 +20,10 @@ export default function HomePassenger() {
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (!token) return;
+        if (!token) {
+          navigate("/login");
+          return;
+        }
 
         const res = await fetch(`${API_URL}/user/me`, {
           headers: {
@@ -54,6 +57,8 @@ export default function HomePassenger() {
     try {
   const token = localStorage.getItem("token");
   if (!token) {
+    console.error("Token no encontrado");
+    navigate("/login");
     return;
   }
 
@@ -80,7 +85,7 @@ export default function HomePassenger() {
   navigate("/CarSignIn");
 } catch (error) {
   console.error("Error cambiando rol:", error);
-  alert("Hubo un error cambiando tu rol. Inténtalo nuevamente.");
+  console.log("Hubo un error cambiando tu rol. Inténtalo nuevamente.");
 }
 
   };
