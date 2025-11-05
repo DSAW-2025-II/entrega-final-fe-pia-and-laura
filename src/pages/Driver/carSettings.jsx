@@ -1,60 +1,120 @@
-import { useState, useEffect } from "react";
-import { ArrowLeft, Star, Home, Activity, User } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { ArrowLeft, Home, Activity, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function CarModel() {
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_API_BASE_URL;
 
+  const fileInputRef = useRef(null);
+  const [previewImage, setPreviewImage] = useState(null); // 🔹 Para previsualizar
   const [car, setCar] = useState({
     licensePlate: "",
     make: "",
     model: "",
     capacity: "",
+    carPhotoUrl: "",
   });
-
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState(null); // ✅ para mostrar mensajes
-  const [messageType, setMessageType] = useState(""); // "error" o "success"
+  const [message, setMessage] = useState(null);
+  const [messageType, setMessageType] = useState("");
 
   // 🔹 Obtener info del carro del usuario (driver)
-useEffect(() => {
-  const fetchCar = async () => {
+  useEffect(() => {
+    const fetchCar = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return console.error("No token found");
+
+        const res = await fetch(`${API_URL}/car/myCar`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) throw new Error("Error fetching car data");
+        const data = await res.json();
+
+        setCar({
+          licensePlate: data.car.licensePlate || "",
+          make: data.car.make || "",
+          model: data.car.model || "",
+          capacity: data.car.capacity?.toString() || "",
+          carPhotoUrl: data.car.carPhotoUrl || "",
+        });
+      } catch (err) {
+        console.error("❌ Error al obtener datos del carro:", err);
+      }
+    };
+
+    fetchCar();
+  }, [API_URL]);
+
+  // 🔹 Cuando el usuario selecciona una nueva foto
+  const handleCarPhotoChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Muestra la previsualización temporalmente
+    const reader = new FileReader();
+    reader.onloadend = () => setPreviewImage(reader.result);
+    reader.readAsDataURL(file);
+
     try {
       const token = localStorage.getItem("token");
       if (!token) return console.error("No token found");
 
-      const res = await fetch(`${API_URL}/car/myCar`, {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      // 📤 Subir primero la imagen a Cloudinary (ruta backend /upload)
+      const uploadRes = await fetch(`${API_URL}/upload`, {
+        method: "POST",
         headers: { Authorization: `Bearer ${token}` },
+        body: formData,
       });
 
-      if (!res.ok) throw new Error("Error fetching car data");
-      const data = await res.json();
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok) throw new Error(uploadData.message || "Error uploading image");
 
+      const newImageUrl = uploadData.url;
 
-      setCar({
-        licensePlate: data.car.licensePlate || "",
-        make: data.car.make || "",
-        model: data.car.model || "",
-        capacity: data.car.capacity?.toString() || "",
-        carPhotoUrl: data.car.carPhotoUrl || "",
+      // 🔁 Actualizar la foto del carro en la base de datos
+      const updateRes = await fetch(`${API_URL}/car/update`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ carPhotoUrl: newImageUrl }),
       });
+
+      const updateData = await updateRes.json();
+      if (!updateRes.ok) throw new Error(updateData.message || "Error updating car photo");
+
+      setCar((prev) => ({ ...prev, carPhotoUrl: newImageUrl }));
+      setPreviewImage(null);
+      setMessage("✅ Car photo updated successfully!");
+      setMessageType("success");
     } catch (err) {
-      console.error("❌ Error al obtener datos del carro:", err);
+      console.error(err);
+      setMessage("Error updating car photo");
+      setMessageType("error");
+    } finally {
+      setTimeout(() => setMessage(null), 4000);
     }
   };
 
-  fetchCar();
-}, [API_URL]);
-
-
-  // 🔹 Manejar cambios en los campos
-  const handleChange = (e) => {
-    setCar({ ...car, [e.target.name]: e.target.value });
+  // 🔹 Abrir selector de archivos al hacer hover o clic
+  const handlePhotoClick = () => {
+    fileInputRef.current?.click();
   };
 
-  // 🔹 Guardar cambios del carro
-  const handleSave = async () => {
+  // 🔹 Manejar cambios en los campos del formulario
+  const handleChange = (e) => {
+    setCar((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  // 🔹 Guardar cambios del carro (información general)
+const handleSave = async () => {
   try {
     setLoading(true);
     setMessage(null);
@@ -72,14 +132,12 @@ useEffect(() => {
     formData.append("model", car.model);
     formData.append("capacity", car.capacity);
 
-    // 📸 Si el usuario selecciona nuevas imágenes, agrégalas al FormData
+    // 📸 Si el usuario cambió la foto, también la enviamos
     if (car.newCarPhoto) formData.append("carPhoto", car.newCarPhoto);
 
     const res = await fetch(`${API_URL}/car/update`, {
       method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
       body: formData,
     });
 
@@ -92,26 +150,26 @@ useEffect(() => {
       setMessage("✅ Car information updated successfully!");
       setMessageType("success");
 
-      // 🧩 Actualiza el estado local del carro con la nueva info del backend
-      setCar({
-        ...car,
+      // 🧩 Actualiza el estado local del carro con la nueva info
+      setCar((prev) => ({
+        ...prev,
         licensePlate: data.car.licensePlate,
         make: data.car.make,
         model: data.car.model,
         capacity: data.car.capacity?.toString(),
         carPhotoUrl: data.car.carPhotoUrl,
         newCarPhoto: null,
-      });
+      }));
     }
-    } catch (err) {
+  } catch (err) {
     console.error(err);
     setMessage("Error updating car data");
     setMessageType("error");
-    } finally {
+  } finally {
     setLoading(false);
     setTimeout(() => setMessage(null), 4000);
-    }
-  };
+  }
+};
 
 
 return (
@@ -141,33 +199,36 @@ return (
     <div className="flex flex-col items-center mt-24 w-full max-w-5xl">
       {/* Imagen + Nombre + Frequent */}
       <div className="flex flex-row items-center justify-center gap-8 mb-10 flex-wrap">
-        {/* Imagen del carro (clickeable para cambiar) */}
-        <div className="relative w-40 h-40 rounded-full overflow-hidden shadow-md cursor-pointer group">
+        {/* Imagen del carro con hover para cambiar */}
+        <div className="relative w-48 h-48 rounded-full overflow-hidden shadow-md group cursor-pointer" onClick={handlePhotoClick}>
+          {/* Imagen o placeholder */}
           {car.carPhotoUrl ? (
             <img
-              src={car.carPhotoUrl}
+              src={previewImage || car.carPhotoUrl}
               alt="Car"
-              className="w-full h-full object-cover group-hover:opacity-80 transition"
-              onClick={() => document.getElementById("carPhotoInput").click()}
+              className="w-full h-full object-cover transition-all duration-300 group-hover:opacity-50"
             />
           ) : (
-            <div
-              className="w-full h-full bg-gray-800 flex items-center justify-center cursor-pointer"
-              onClick={() => document.getElementById("carPhotoInput").click()}
-            >
+            <div className="w-full h-full bg-gray-800 flex items-center justify-center transition-all duration-300 group-hover:opacity-50">
               <User size={96} className="text-white" />
             </div>
           )}
+
+          {/* Overlay de cambio */}
+          <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <span className="text-white text-lg font-semibold">Change Photo</span>
+          </div>
+
+          {/* Input oculto */}
           <input
-            id="carPhotoInput"
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={(e) =>
-              setCar({ ...car, newCarPhoto: e.target.files[0] })
-            }
+            ref={fileInputRef}
+            onChange={handleCarPhotoChange}
           />
         </div>
+
 
         {/* Nombre del carro */}
         <div className="flex flex-col items-center justify-center">
