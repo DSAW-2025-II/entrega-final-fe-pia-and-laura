@@ -18,7 +18,7 @@ export default function CarModel() {
   const [messageType, setMessageType] = useState(""); // "error" o "success"
 
   // 🔹 Obtener info del carro del usuario (driver)
-  useEffect(() => {
+useEffect(() => {
   const fetchCar = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -31,17 +31,23 @@ export default function CarModel() {
       if (!res.ok) throw new Error("Error fetching car data");
       const data = await res.json();
 
+      const carData = data.car || {};
+
       setCar({
-        ...data.car,
-        capacity: data.car.capacity?.toString() || "",
+        licensePlate: carData.licensePlate || "",
+        make: carData.make || "",
+        model: carData.model || "",
+        capacity: carData.capacity?.toString() || "",
+        carPhotoUrl: carData.carPhotoUrl || "",
       });
     } catch (err) {
-      console.error(err);
+      console.error("❌ Error al obtener datos del carro:", err);
     }
   };
 
   fetchCar();
 }, [API_URL]);
+
 
   // 🔹 Manejar cambios en los campos
   const handleChange = (e) => {
@@ -50,54 +56,67 @@ export default function CarModel() {
 
   // 🔹 Guardar cambios del carro
   const handleSave = async () => {
-    try {
-      setLoading(true);
-      setMessage(null);
+  try {
+    setLoading(true);
+    setMessage(null);
 
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setMessage("No token found");
-        setMessageType("error");
-        return;
-      }
-
-      const res = await fetch(`${API_URL}/car/update`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(car),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        // 🔴 Mostrar mensaje de error del backend
-        setMessage(data.message || "Error updating car");
-        setMessageType("error");
-      } else {
-        // ✅ Mostrar mensaje de éxito
-        setMessage("Car information updated successfully!");
-        setMessageType("success");
-        setTimeout(() => navigate("/settings"), 1500);
-      }
-    } catch (err) {
-      console.error(err);
-      setMessage("Error updating car data");
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setMessage("No token found");
       setMessageType("error");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("licensePlate", car.licensePlate);
+    formData.append("make", car.make);
+    formData.append("model", car.model);
+    formData.append("capacity", car.capacity);
+
+    // 📸 Si el usuario selecciona nuevas imágenes, agrégalas al FormData
+    if (car.newCarPhoto) formData.append("carPhoto", car.newCarPhoto);
+    if (car.newSoat) formData.append("soat", car.newSoat);
+
+    const res = await fetch(`${API_URL}/car/update`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setMessage(data.message || "Error updating car");
+      setMessageType("error");
+    } else {
+      setMessage("✅ Car information updated successfully!");
+      setMessageType("success");
+
+      // 🧩 Actualiza el estado local del carro con la nueva info del backend
+      setCar({
+        ...car,
+        licensePlate: data.car.licensePlate,
+        make: data.car.make,
+        model: data.car.model,
+        capacity: data.car.capacity?.toString(),
+        carPhotoUrl: data.car.carPhotoUrl,
+        soatUrl: data.car.soatUrl,
+        newCarPhoto: null,
+        newSoat: null,
+      });
+    }
+    } catch (err) {
+    console.error(err);
+    setMessage("Error updating car data");
+    setMessageType("error");
     } finally {
-      setLoading(false);
-      setTimeout(() => setMessage(null), 4000); // mensaje desaparece
+    setLoading(false);
+    setTimeout(() => setMessage(null), 4000);
     }
   };
-  if (!car || !car.licensePlate) {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen text-2xl text-gray-600">
-      Cargando datos del vehículo...
-    </div>
-  );
-}
+
 
   return (
     <div className="min-h-screen bg-white rounded-2xl flex flex-col items-center relative p-8">
@@ -124,17 +143,52 @@ export default function CarModel() {
 
       {/* Contenedor principal */}
       <div className="flex flex-col items-center mt-28">
-        <div className="w-48 h-48 bg-gray-800 rounded-full flex items-center justify-center mb-6">
-          <User size={96} className="text-white" />
+        <div className="w-48 h-48 rounded-full overflow-hidden flex items-center justify-center mb-6 bg-gray-200">
+          {car.carPhotoUrl ? (
+            <img
+              src={car.carPhotoUrl}
+              alt="Car photo"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <User size={96} className="text-gray-400" />
+          )}
+          <Camera size={32} className="absolute bottom-2 right-2 text-white" />
         </div>
 
+        <div className="flex flex-col items-center mb-6">
+          <label className="text-gray-500 text-xl mb-2 font-semibold">
+            Change Car Photo
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setCar({ ...car, newCarPhoto: e.target.files[0] })}
+            className="text-gray-600"
+          />
+
+          <label className="text-gray-500 text-xl mt-4 mb-2 font-semibold">
+            Change SOAT
+          </label>
+          <input
+            type="file"
+            accept="image/*,application/pdf"
+            onChange={(e) => setCar({ ...car, newSoat: e.target.files[0] })}
+            className="text-gray-600"
+          />
+        </div>
+
+
         <div className="flex items-center gap-4 mb-10">
-          <h1 className="text-6xl font-bold text-gray-800">Car Model</h1>
+          <h1 className="text-6xl font-bold text-gray-800">
+            {car.model || "Your Car"}
+          </h1>
           <div className="flex items-center bg-gray-200 rounded-xl px-4 py-2">
             <Star fill="black" className="text-black mr-2" />
             <span className="text-2xl font-medium text-black">Frequent</span>
           </div>
         </div>
+
 
         {/* Mensaje dinámico */}
         {message && (
