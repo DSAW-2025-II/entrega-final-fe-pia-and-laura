@@ -27,6 +27,7 @@ export default function Settings() {
         if (!res.ok) throw new Error(`Error fetching user`);
         const data = await res.json();
         setUser(data);
+        console.log("🧩 Usuario obtenido del backend:", data);
         setFormData(data);
       } catch (err) {
         console.error(err);

@@ -41,7 +41,8 @@ useEffect(() => {
       console.log("Respuesta del perfil:", data);
 
       if (res.ok) {
-        setUser(data); // 👈 aquí el cambio clave
+        setUser(data);
+         // 👈 aquí el cambio clave
       } else {
         console.error("Error al obtener perfil:", data.message);
       }
