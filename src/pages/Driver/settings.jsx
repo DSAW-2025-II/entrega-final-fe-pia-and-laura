@@ -43,49 +43,48 @@ export default function Settings() {
   };
 
   // 🔹 Subir imagen al backend (no directamente a Cloudinary)
-  const handleImageChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  // 🔹 Subir imagen al backend (y actualizar usuario)
+const handleImageChange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
 
-    // Mostrar preview local
-    const localPreview = URL.createObjectURL(file);
-    setPreview(localPreview);
+  // Previsualización local
+  const localPreview = URL.createObjectURL(file);
+  setPreview(localPreview);
 
-    setFormData((prev) => ({ ...prev, profileImage: file }));
-
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("No token found");
-        return;
-      }
-
-      const formDataFile = new FormData();
-      formDataFile.append("file", file);
-
-      // Enviar archivo al backend (el backend se encarga de Cloudinary)
-      const uploadRes = await fetch(`${API_URL}/upload`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formDataFile,
-      });
-
-      if (!uploadRes.ok) throw new Error("Error uploading image");
-
-      const uploadData = await uploadRes.json();
-
-      // Guardar URL devuelta por el backend
-      setFormData((prev) => ({ ...prev, profileImage: uploadData.url }));
-
-      alert("Photo uploaded successfully!");
-    } catch (err) {
-      console.error("Error uploading image:", err);
-      alert("Error uploading image");
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("No token found");
+      return;
     }
-  };
+
+    const formDataFile = new FormData();
+    formDataFile.append("profileImage", file); // ✅ nombre correcto
+
+    // Subir al endpoint de usuario directamente
+    const res = await fetch(`${API_URL}/user/${user._id}`, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formDataFile,
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Error uploading image");
+
+    // ✅ Actualizar estado local con nueva URL
+    setUser(data.user);
+    setFormData((prev) => ({ ...prev, profileImage: data.user.profileImage }));
+    setPreview(null);
+  } catch (err) {
+    console.error("Error updating profile photo:", err);
+    alert("Error updating profile photo");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // 🔹 Validar correo existente antes de guardar
   const validateEmail = async (email) => {
@@ -265,42 +264,37 @@ Object.keys(formData).forEach((key) => {
       {/* 🔹 Avatar + Nombre */}
       <div className="flex flex-col md:flex-row items-center gap-6 mt-8">
         <div
-          className="relative w-28 h-28 md:w-56 md:h-56 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center cursor-pointer group transition-all duration-200"
-          onClick={() => fileInputRef.current.click()}
-        >
-          {preview ? (
-  <img src={preview} alt="preview" className="w-full h-full object-cover" />
-) : user?.profileImage ? (
-  <img
-    src={user.profileImage}
-    alt="Profile"
-    className="w-full h-full object-cover"
+  className="relative w-28 h-28 md:w-56 md:h-56 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center cursor-pointer group transition-all duration-200"
+  onClick={() => fileInputRef.current.click()}
+>
+  {preview ? (
+    <img src={preview} alt="preview" className="w-full h-full object-cover" />
+  ) : user?.profileImage ? (
+    <img
+      src={user.profileImage}
+      alt="Profile"
+      className="w-full h-full object-cover"
+    />
+  ) : (
+    <span className="text-6xl font-bold text-gray-700">
+      {user?.name?.[0]?.toUpperCase() || "?"}
+    </span>
+  )}
+
+  {/* 🔸 Overlay al pasar el mouse */}
+  <div className="absolute inset-0 bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
+    <span className="text-white font-semibold text-lg">Change photo</span>
+  </div>
+
+  <input
+    ref={fileInputRef}
+    type="file"
+    accept="image/*"
+    onChange={handleImageChange}
+    className="hidden"
   />
-) : (
-  <span className="text-6xl font-bold text-gray-700">
-    {user?.name?.[0]?.toUpperCase() || "?"}
-  </span>
-)}
+</div>
 
-
-          {/* 🔸 Icono cámara hover */}
-          <div className="absolute bottom-2 right-2 bg-[#F59739] p-2 rounded-full transition-transform duration-300 transform group-hover:scale-110 group-hover:rotate-6">
-            <Camera size={22} className="text-white" />
-          </div>
-
-          {/* 🔸 Overlay al pasar el mouse */}
-          <div className="absolute inset-0 bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
-            <span className="text-white font-semibold text-lg">Change photo</span>
-          </div>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="hidden"
-          />
-        </div>
 
         <div className="flex flex-col gap-4 w-full">
           <h1 className="text-4xl md:text-6xl font-extrabold text-[#1F2937]">
