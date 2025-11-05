@@ -153,7 +153,6 @@ useEffect(() => {
           ) : (
             <User size={96} className="text-gray-400" />
           )}
-          <Camera size={32} className="absolute bottom-2 right-2 text-white" />
         </div>
 
         <div className="flex flex-col items-center mb-6">
