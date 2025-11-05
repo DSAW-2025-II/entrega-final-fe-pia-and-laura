@@ -19,25 +19,29 @@ export default function CarModel() {
 
   // 🔹 Obtener info del carro del usuario (driver)
   useEffect(() => {
-    const fetchCar = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) return console.error("No token found");
+  const fetchCar = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return console.error("No token found");
 
-        const res = await fetch(`${API_URL}/car/myCar`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+      const res = await fetch(`${API_URL}/car/myCar`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        if (!res.ok) throw new Error("Error fetching car data");
-        const data = await res.json();
-        setCar(data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
+      if (!res.ok) throw new Error("Error fetching car data");
+      const data = await res.json();
 
-    fetchCar();
-  }, [API_URL]);
+      setCar({
+        ...data.car,
+        capacity: data.car.capacity?.toString() || "",
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchCar();
+}, [API_URL]);
 
   // 🔹 Manejar cambios en los campos
   const handleChange = (e) => {
@@ -87,6 +91,13 @@ export default function CarModel() {
       setTimeout(() => setMessage(null), 4000); // mensaje desaparece
     }
   };
+  if (!car || !car.licensePlate) {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen text-2xl text-gray-600">
+      Cargando datos del vehículo...
+    </div>
+  );
+}
 
   return (
     <div className="min-h-screen bg-white rounded-2xl flex flex-col items-center relative p-8">
