@@ -175,7 +175,7 @@ const handleSave = async () => {
 return (
   <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 relative">
     {/* Botón atrás */}
-    <button className="absolute top-6 left-6" onClick={() => navigate(-1)}>
+    <button className="absolute top-6 left-6" onClick={() => navigate("/UserProfile")}>
       <ArrowLeft size={32} className="text-black" />
     </button>
 

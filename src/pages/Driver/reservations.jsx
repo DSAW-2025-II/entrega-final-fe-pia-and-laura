@@ -185,7 +185,7 @@ export default function ReservationsPage() {
 
   const handleAccountClick = () => {
     setActive("account");
-    navigate("/userProfile");
+    navigate("/UserProfile");
   };
 
   const handleActivityClick = () => {

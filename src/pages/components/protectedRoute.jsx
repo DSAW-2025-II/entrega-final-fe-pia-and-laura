@@ -7,7 +7,7 @@ export default function ProtectedRoute({ children, allowedRoles }) {
 
   // 🔒 Si no hay sesión activa → redirigir al login
   if (!isAuthenticated || !user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/start" replace />;
   }
 
   // 🔑 Si hay roles específicos y el usuario no tiene permiso → redirigir a inicio

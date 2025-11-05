@@ -202,7 +202,7 @@ export default function UserProfile() {
 
       {/* Flecha de regreso */}
       <button
-        onClick={() => navigate(-1)}
+        onClick={() => navigate("/passengerHome")}
         className="fixed top-6 left-6 md:top-8 md:left-8 hover:opacity-80 transition"
         aria-label="Back"
       >

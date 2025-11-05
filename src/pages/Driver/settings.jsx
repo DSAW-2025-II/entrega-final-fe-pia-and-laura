@@ -264,7 +264,7 @@ Object.keys(formData).forEach((key) => {
     <div className="min-h-screen bg-white rounded-2xl flex flex-col p-6 md:p-10 relative pb-20">
       {/* 🔙 Back Button */}
       <button
-        onClick={() => navigate(-1)}
+        onClick={() => navigate("/UserProfile")}
         className="absolute top-6 left-6 text-black hover:text-gray-700"
       >
         <ArrowLeft size={28} />

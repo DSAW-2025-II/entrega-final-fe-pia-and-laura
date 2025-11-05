@@ -174,7 +174,7 @@ export default function PassengerSignIn() {
       <button
         className="absolute top-6 left-6 hover:opacity-70 transition"
         aria-label="Back"
-        onClick={() => navigate(-1)}
+        onClick={() => navigate("/start")}
       >
         <ArrowLeft className="w-7 h-7 text-black" />
       </button>
