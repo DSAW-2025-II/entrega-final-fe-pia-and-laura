@@ -50,58 +50,45 @@ export default function CarModel() {
 
   // 🔹 Cuando el usuario selecciona una nueva foto
   const handleCarPhotoChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const file = e.target.files[0];
+  if (!file) return;
 
-    // Muestra la previsualización temporalmente
-    const reader = new FileReader();
-    reader.onloadend = () => setPreviewImage(reader.result);
-    reader.readAsDataURL(file);
+  // Previsualización local inmediata
+  const reader = new FileReader();
+  reader.onloadend = () => setPreviewImage(reader.result);
+  reader.readAsDataURL(file);
 
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return console.error("No token found");
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return console.error("No token found");
 
-      const formData = new FormData();
-      formData.append("file", file);
+    // ✅ Subimos la imagen directamente con el nombre correcto
+    const formData = new FormData();
+    formData.append("carPhoto", file); // 👈 CAMBIO CLAVE
 
-      // 📤 Subir primero la imagen a Cloudinary (ruta backend /upload)
-      const uploadRes = await fetch(`${API_URL}/upload`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
+    const res = await fetch(`${API_URL}/car/update`, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
 
-      const uploadData = await uploadRes.json();
-      if (!uploadRes.ok) throw new Error(uploadData.message || "Error uploading image");
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Error updating car photo");
 
-      const newImageUrl = uploadData.url;
+    // 🧩 Actualizar estado local con nueva imagen
+    setCar((prev) => ({ ...prev, carPhotoUrl: data.car.carPhotoUrl }));
+    setPreviewImage(null);
+    setMessage("✅ Car photo updated successfully!");
+    setMessageType("success");
+  } catch (err) {
+    console.error(err);
+    setMessage("Error updating car photo");
+    setMessageType("error");
+  } finally {
+    setTimeout(() => setMessage(null), 4000);
+  }
+};
 
-      // 🔁 Actualizar la foto del carro en la base de datos
-      const updateRes = await fetch(`${API_URL}/car/update`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ carPhotoUrl: newImageUrl }),
-      });
-
-      const updateData = await updateRes.json();
-      if (!updateRes.ok) throw new Error(updateData.message || "Error updating car photo");
-
-      setCar((prev) => ({ ...prev, carPhotoUrl: newImageUrl }));
-      setPreviewImage(null);
-      setMessage("✅ Car photo updated successfully!");
-      setMessageType("success");
-    } catch (err) {
-      console.error(err);
-      setMessage("Error updating car photo");
-      setMessageType("error");
-    } finally {
-      setTimeout(() => setMessage(null), 4000);
-    }
-  };
 
   // 🔹 Abrir selector de archivos al hacer hover o clic
   const handlePhotoClick = () => {
