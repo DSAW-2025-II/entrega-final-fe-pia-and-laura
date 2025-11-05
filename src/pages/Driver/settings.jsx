@@ -51,6 +51,8 @@ export default function Settings() {
     const localPreview = URL.createObjectURL(file);
     setPreview(localPreview);
 
+    setFormData((prev) => ({ ...prev, profileImage: file }));
+
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
