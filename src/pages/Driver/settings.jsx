@@ -62,7 +62,7 @@ const handleImageChange = async (e) => {
     }
 
     const formDataFile = new FormData();
-    formDataFile.append("profileImage", file); // ✅ nombre correcto
+    formDataFile.append("photo", file); // ✅ nombre correcto
 
     // Subir al endpoint de usuario directamente
     const res = await fetch(`${API_URL}/user/${user._id}`, {
@@ -76,7 +76,7 @@ const handleImageChange = async (e) => {
 
     // ✅ Actualizar estado local con nueva URL
     setUser(data.user);
-    setFormData((prev) => ({ ...prev, profileImage: data.user.profileImage }));
+    setFormData((prev) => ({ ...prev, photo: data.user.photo }));
     setPreview(null);
   } catch (err) {
     console.error("Error updating profile photo:", err);
@@ -270,9 +270,9 @@ Object.keys(formData).forEach((key) => {
 >
   {preview ? (
     <img src={preview} alt="preview" className="w-full h-full object-cover" />
-  ) : user?.profileImage ? (
+  ) : user?.photo ? (
     <img
-      src={user.profileImage}
+      src={user.photo}
       alt="Profile"
       className="w-full h-full object-cover"
     />
