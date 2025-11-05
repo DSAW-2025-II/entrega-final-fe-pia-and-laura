@@ -283,7 +283,7 @@ Object.keys(formData).forEach((key) => {
   )}
 
   {/* 🔸 Overlay al pasar el mouse */}
-  <div className="absolute inset-0 bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
+  <div className="absolute inset-0 bg-black bg-opacity-30 opacity-0 group-hover:opacity-80 flex items-center justify-center transition-opacity duration-300">
     <span className="text-white font-semibold text-lg">Change photo</span>
   </div>
 
