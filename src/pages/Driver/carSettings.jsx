@@ -158,7 +158,7 @@ const handleSave = async () => {
       // ✅ Redirigir al perfil del usuario después de guardar
       setTimeout(() => {
         navigate("/UserProfile");
-      }, 1500); // pequeño retraso opcional para que se vea el mensaje de éxito
+      }, 1500);
     }
   } catch (err) {
     console.error(err);

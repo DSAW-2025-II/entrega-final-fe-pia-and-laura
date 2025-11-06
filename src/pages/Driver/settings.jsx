@@ -196,6 +196,9 @@ Object.keys(formData).forEach((key) => {
       console.log("Error updating profile");
     } finally {
       setLoading(false);
+      setTimeout(() => {
+        navigate("/UserProfile");
+      }, 1500);
     }
   };
 
