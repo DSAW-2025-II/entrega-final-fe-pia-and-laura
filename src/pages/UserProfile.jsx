@@ -69,7 +69,7 @@ export default function UserProfile() {
     }
 
     // Cambiar el rol del usuario en el backend
-    const res = await fetch(`${API_URL}/user/update-role`, {
+    const res = await fetch(`${API_URL}/user/role/change`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
