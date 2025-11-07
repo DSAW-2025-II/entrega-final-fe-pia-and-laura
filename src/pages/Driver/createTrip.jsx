@@ -1,11 +1,11 @@
 import { useState , useContext} from "react";
-import {UserContext} from "../../context/AuthContext.jsx";
+import {AuthProvider} from "../../context/AuthContext.jsx";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function CreateTrip() {
-    const { user } = useContext(UserContext);
+    const { user } = useContext(AuthProvider);
     const navigate = useNavigate();
     const [trip, setTrip] = useState({
         startPoint: "",
