@@ -1,17 +1,20 @@
-import { useState } from "react";
-import { ArrowLeft, User } from "lucide-react";
+import { useState , useContext} from "react";
+import {UserContext} from "../../context/AuthContext.jsx";
+import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function CreateTrip() {
-  const [trip, setTrip] = useState({
-    startPoint: "",
-    endPoint: "",
-    route: "",
-    departureTime: "",
-    seats: "",
-    price: "",
-  });
+    const { user } = useContext(UserContext);
+    const navigate = useNavigate();
+    const [trip, setTrip] = useState({
+        startPoint: "",
+        endPoint: "",
+        route: "",
+        departureTime: "",
+        seats: "",
+        price: "",
+    });
 
   const [message, setMessage] = useState("");
 
@@ -71,14 +74,23 @@ export default function CreateTrip() {
     <div className="relative flex flex-col items-center w-full min-h-screen bg-white p-6 font-[Plus Jakarta Sans]">
       {/* Header */}
       <header className="flex justify-between items-center w-full max-w-6xl mt-6">
-        {/* Botón atrás */}
         <button className="absolute top-6 left-6" onClick={() => navigate(-1)}>
-            <ArrowLeft size={32} className="text-black" />
+          <ArrowLeft size={32} className="text-black" />
         </button>
         <h1 className="font-extrabold text-5xl md:text-6xl">
-             {user?.name || "Wheeler"}
+          {user?.name || "Wheeler"}
         </h1>
-        <div className="w-12 h-12 bg-gray-800 rounded-full"></div>
+        <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
+          {user?.avatar ? (
+            <img
+              src={user.avatar}
+              alt="User Avatar"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-400" />
+          )}
+        </div>
       </header>
 
       {/* Info banner */}
