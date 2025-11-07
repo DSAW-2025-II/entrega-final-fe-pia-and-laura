@@ -24,13 +24,13 @@ function App() {
         <Route path="/driverSignIn" element={<DriverSignIn />} />
         <Route path="/passengerSignIn" element={<PassengerSignIn />} />
         <Route path="/CarSignIn" element={<CarSignIn />} />
-        <Route path="/driverHome" element={<DriverHome />} />
+        <Route path="/driverHome" element={<ProtectedRoute allowedRoles={["driver"]}><DriverHome /></ProtectedRoute>} />
         <Route path="/passengerHome" element={<ProtectedRoute><PassengerHome /></ProtectedRoute>} />
         <Route path="/userProfile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
-        <Route path="/reservations" element={<ProtectedRoute allowedRoles={["driver", "passenger"]}><ReservationsPage /></ProtectedRoute>} />
+        <Route path="/reservations" element={<ProtectedRoute ><ReservationsPage /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-        <Route path="/carSettings" element={<ProtectedRoute><CarSettings /></ProtectedRoute>} />
-        <Route path="/createTrip" element={<ProtectedRoute><CreateTrip /></ProtectedRoute>} />
+        <Route path="/carSettings" element={<ProtectedRoute allowedRoles={["driver"]}><CarSettings /></ProtectedRoute>} />
+        <Route path="/createTrip" element={<ProtectedRoute allowedRoles={["driver"]}><CreateTrip /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );

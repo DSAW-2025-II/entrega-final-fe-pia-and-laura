@@ -1,23 +1,49 @@
-import { useState , useContext} from "react";
-import {useAuth} from "../../context/AuthContext.jsx";
+import { useState, useEffect } from "react";
+import { useAuth } from "../../context/AuthContext.jsx";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function CreateTrip() {
-    const { user } = useAuth();
-    const navigate = useNavigate();
-    const [trip, setTrip] = useState({
-        startPoint: "",
-        endPoint: "",
-        route: "",
-        departureTime: "",
-        seats: "",
-        price: "",
-    });
+  const { user, token, login } = useAuth();
+  const navigate = useNavigate();
 
+  const [fullUser, setFullUser] = useState(user);
+  const [trip, setTrip] = useState({
+    startPoint: "",
+    endPoint: "",
+    route: "",
+    departureTime: "",
+    seats: "",
+    price: "",
+  });
   const [message, setMessage] = useState("");
 
+  // 🔹 Al montar el componente, obtenemos los datos completos del usuario autenticado
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!token) return; // No token => no llamada
+      try {
+        const res = await fetch(`${API_URL}/user/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setFullUser(data);
+        } else {
+          console.error("Error al obtener usuario:", await res.text());
+        }
+      } catch (err) {
+        console.error("Error de conexión:", err);
+      }
+    };
+    fetchUser();
+  }, [token]);
+
+  // 🔹 Manejadores de formulario
   const handleChange = (e) => {
     setTrip({ ...trip, [e.target.name]: e.target.value });
   };
@@ -25,7 +51,6 @@ export default function CreateTrip() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const token = localStorage.getItem("token");
     if (!token) {
       setMessage("No se encontró token. Inicia sesión.");
       return;
@@ -36,9 +61,8 @@ export default function CreateTrip() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ necesario para obtener el driver
+          Authorization: `Bearer ${token}`,
         },
-        // ✅ aseguramos que los números no se envíen como strings
         body: JSON.stringify({
           ...trip,
           seats: Number(trip.seats),
@@ -52,7 +76,6 @@ export default function CreateTrip() {
         setMessage("✅ Trip created successfully!");
         console.log("Nuevo viaje guardado:", data);
 
-        // ✅ Limpia el formulario tras guardar
         setTrip({
           startPoint: "",
           endPoint: "",
@@ -69,8 +92,8 @@ export default function CreateTrip() {
       setMessage("❌ Error al conectar con el servidor");
     }
   };
-  console.log("👤 Usuario desde contexto:", user);
 
+  console.log("👤 Usuario desde contexto:", fullUser);
 
   return (
     <div className="relative flex flex-col items-center w-full min-h-screen bg-white p-6 font-[Plus Jakarta Sans]">
@@ -79,13 +102,17 @@ export default function CreateTrip() {
         <button className="absolute top-6 left-6" onClick={() => navigate(-1)}>
           <ArrowLeft size={32} className="text-black" />
         </button>
+
+        {/* 🔹 Mostrar nombre real del usuario */}
         <h1 className="font-extrabold text-5xl md:text-6xl">
-          {user?.name || "Wheeler"}
+          {fullUser?.name || "Wheeler"}
         </h1>
+
+        {/* 🔹 Mostrar foto si existe */}
         <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
-          {user?.avatar ? (
+          {fullUser?.photo ? (
             <img
-              src={user.avatar}
+              src={fullUser.photo}
               alt="User Avatar"
               className="w-full h-full object-cover"
             />
@@ -95,16 +122,7 @@ export default function CreateTrip() {
         </div>
       </header>
 
-      {/* Info banner */}
-      <div className="bg-emerald-500 text-white rounded-lg px-6 py-4 mt-10 flex justify-between items-center max-w-xl w-full shadow">
-        <div>
-          <h2 className="text-xl font-bold">Enter your destination</h2>
-          <p className="text-sm font-medium">Tell us wherever you go.</p>
-        </div>
-        <button className="bg-emerald-600 px-3 py-1 rounded-md">✕</button>
-      </div>
-
-      {/* Form */}
+      {/* Formulario */}
       <form
         onSubmit={handleSubmit}
         className="bg-white mt-16 rounded-2xl shadow-lg p-8 w-full max-w-4xl space-y-6"
@@ -150,7 +168,9 @@ export default function CreateTrip() {
 
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <label className="block font-bold text-gray-700">Departure Time</label>
+            <label className="block font-bold text-gray-700">
+              Departure Time
+            </label>
             <input
               type="datetime-local"
               name="departureTime"
@@ -175,7 +195,9 @@ export default function CreateTrip() {
         </div>
 
         <div>
-          <label className="block font-bold text-gray-700">Price (per passenger)</label>
+          <label className="block font-bold text-gray-700">
+            Price (per passenger)
+          </label>
           <input
             type="number"
             name="price"
@@ -194,7 +216,9 @@ export default function CreateTrip() {
         </button>
 
         {message && (
-          <p className="text-center mt-4 font-semibold text-gray-700">{message}</p>
+          <p className="text-center mt-4 font-semibold text-gray-700">
+            {message}
+          </p>
         )}
       </form>
     </div>
