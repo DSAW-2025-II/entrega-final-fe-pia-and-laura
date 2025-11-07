@@ -69,6 +69,8 @@ export default function CreateTrip() {
       setMessage("❌ Error al conectar con el servidor");
     }
   };
+  console.log("👤 Usuario desde contexto:", user);
+
 
   return (
     <div className="relative flex flex-col items-center w-full min-h-screen bg-white p-6 font-[Plus Jakarta Sans]">
