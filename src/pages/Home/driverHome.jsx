@@ -45,6 +45,9 @@ export default function HomeDriver() {
   const handleReservationsClick = () => {
     navigate("/reservations");
   };
+  const handleTripClick = () => {
+    navigate("/createTrip");
+  };
    const handleHomeClick = () => {
     setActive("home");
     navigate("/driverHome"); // redirige siempre, incluso si ya estás ahí
@@ -174,7 +177,10 @@ export default function HomeDriver() {
         <div className="flex flex-col md:flex-row justify-center gap-3 flex-1 pt-2 min-h-0">
           {/* Left: Icons */}
           <div className="flex flex-row md:flex-col justify-center items-center gap-3 md:gap-5 w-full md:w-[30%]">
-            <button className="flex-shrink-0 flex flex-col items-center bg-gray-100 rounded-xl p-3 w-28 md:w-full max-w-[280px] md:max-w-none h-28 md:h-auto justify-center">
+            <button
+              onClick={handleTripClick}
+              className="flex-shrink-0 flex flex-col items-center bg-gray-100 rounded-xl p-3 w-28 md:w-full max-w-[280px] md:max-w-none h-28 md:h-auto justify-center"
+            >
               <img
                 src={rideCar}
                 alt="New ride"
@@ -191,8 +197,9 @@ export default function HomeDriver() {
                 alt="Reservations"
                 className="w-24 md:w-40 h-auto object-contain"
               />
-              <p className="mt-2 font-semibold text-sm md:text-base text-center">
-                Reservations
+              <p 
+              className="mt-2 font-semibold text-sm md:text-base text-center">
+              Reservations
               </p>
             </button>
           </div>

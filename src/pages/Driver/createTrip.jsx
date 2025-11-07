@@ -56,6 +56,17 @@ export default function CreateTrip() {
       return;
     }
 
+    // 🔹 Validaciones
+    if (trip.seats <= 0) {  
+        setMessage("❌ El número de asientos debe ser mayor que 0.");
+        return;
+    }
+
+    if (trip.price < 1400) {
+        setMessage("❌ El precio por pasajero debe ser al menos $1.400.");
+        return;
+    }
+
     try {
       const res = await fetch(`${API_URL}/trips`, {
         method: "POST",
@@ -67,6 +78,7 @@ export default function CreateTrip() {
           ...trip,
           seats: Number(trip.seats),
           price: Number(trip.price),
+          driver: fullUser?._id || fullUser?.id,
         }),
       });
 
@@ -75,7 +87,7 @@ export default function CreateTrip() {
       if (res.ok) {
         setMessage("✅ Trip created successfully!");
         console.log("Nuevo viaje guardado:", data);
-
+          setTimeout(() => navigate("/driverHome"), 1000);
         setTrip({
           startPoint: "",
           endPoint: "",
@@ -186,6 +198,7 @@ export default function CreateTrip() {
             <input
               type="number"
               name="seats"
+              min="1"
               value={trip.seats}
               onChange={handleChange}
               className="w-full p-3 mt-2 border border-gray-300 rounded-xl"
@@ -201,6 +214,8 @@ export default function CreateTrip() {
           <input
             type="number"
             name="price"
+            min="1400"
+            step="100"
             value={trip.price}
             onChange={handleChange}
             className="w-full p-3 mt-2 border border-gray-300 rounded-xl"
