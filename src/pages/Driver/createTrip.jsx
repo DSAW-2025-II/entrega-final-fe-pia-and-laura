@@ -1,5 +1,6 @@
 import { useState } from "react";
 const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 export default function CreateTrip() {
   const [trip, setTrip] = useState({
     startPoint: "",
@@ -10,30 +11,57 @@ export default function CreateTrip() {
     price: "",
   });
 
+  const [message, setMessage] = useState("");
+
   const handleChange = (e) => {
     setTrip({ ...trip, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const token = localStorage.getItem("token");
+    if (!token) {
+      setMessage("No se encontró token. Inicia sesión.");
+      return;
+    }
+
     try {
       const res = await fetch(`${API_URL}/trips`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`, // ✅ necesario para obtener el driver
         },
-        body: JSON.stringify(trip),
+        // ✅ aseguramos que los números no se envíen como strings
+        body: JSON.stringify({
+          ...trip,
+          seats: Number(trip.seats),
+          price: Number(trip.price),
+        }),
       });
+
       const data = await res.json();
+
       if (res.ok) {
-        alert("Trip created successfully!");
+        setMessage("✅ Trip created successfully!");
+        console.log("Nuevo viaje guardado:", data);
+
+        // ✅ Limpia el formulario tras guardar
+        setTrip({
+          startPoint: "",
+          endPoint: "",
+          route: "",
+          departureTime: "",
+          seats: "",
+          price: "",
+        });
       } else {
-        alert(data.message);
+        setMessage(`❌ ${data.message || "Error al crear el viaje"}`);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error al crear viaje:", err);
+      setMessage("❌ Error al conectar con el servidor");
     }
   };
 
@@ -50,7 +78,7 @@ export default function CreateTrip() {
       <div className="bg-emerald-500 text-white rounded-lg px-6 py-4 mt-10 flex justify-between items-center max-w-xl w-full shadow">
         <div>
           <h2 className="text-xl font-bold">Enter your destination</h2>
-          <p className="text-sm font-medium">Tell us whenever you go.</p>
+          <p className="text-sm font-medium">Tell us wherever you go.</p>
         </div>
         <button className="bg-emerald-600 px-3 py-1 rounded-md">✕</button>
       </div>
@@ -69,6 +97,7 @@ export default function CreateTrip() {
             onChange={handleChange}
             placeholder="Edificio K, Universidad de La Sabana"
             className="w-full p-3 mt-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500"
+            required
           />
         </div>
 
@@ -81,6 +110,7 @@ export default function CreateTrip() {
             onChange={handleChange}
             placeholder="Enter your destination"
             className="w-full p-3 mt-2 border border-gray-300 rounded-xl"
+            required
           />
         </div>
 
@@ -93,6 +123,7 @@ export default function CreateTrip() {
             onChange={handleChange}
             placeholder="Example: Via Chía - Puente del Común"
             className="w-full p-3 mt-2 border border-gray-300 rounded-xl"
+            required
           />
         </div>
 
@@ -105,6 +136,7 @@ export default function CreateTrip() {
               value={trip.departureTime}
               onChange={handleChange}
               className="w-full p-3 mt-2 border border-gray-300 rounded-xl"
+              required
             />
           </div>
 
@@ -116,6 +148,7 @@ export default function CreateTrip() {
               value={trip.seats}
               onChange={handleChange}
               className="w-full p-3 mt-2 border border-gray-300 rounded-xl"
+              required
             />
           </div>
         </div>
@@ -128,6 +161,7 @@ export default function CreateTrip() {
             value={trip.price}
             onChange={handleChange}
             className="w-full p-3 mt-2 border border-gray-300 rounded-xl"
+            required
           />
         </div>
 
@@ -137,6 +171,10 @@ export default function CreateTrip() {
         >
           Create →
         </button>
+
+        {message && (
+          <p className="text-center mt-4 font-semibold text-gray-700">{message}</p>
+        )}
       </form>
     </div>
   );
