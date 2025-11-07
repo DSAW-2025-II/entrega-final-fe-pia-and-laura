@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { ArrowLeft, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function CreateTrip() {
@@ -69,8 +71,13 @@ export default function CreateTrip() {
     <div className="relative flex flex-col items-center w-full min-h-screen bg-white p-6 font-[Plus Jakarta Sans]">
       {/* Header */}
       <header className="flex justify-between items-center w-full max-w-6xl mt-6">
-        <button className="text-2xl font-bold text-gray-700">←</button>
-        <h1 className="text-4xl font-extrabold text-gray-800">Wheeler</h1>
+        {/* Botón atrás */}
+        <button className="absolute top-6 left-6" onClick={() => navigate(-1)}>
+            <ArrowLeft size={32} className="text-black" />
+        </button>
+        <h1 className="font-extrabold text-5xl md:text-6xl">
+             {user?.name || "Wheeler"}
+        </h1>
         <div className="w-12 h-12 bg-gray-800 rounded-full"></div>
       </header>
 
