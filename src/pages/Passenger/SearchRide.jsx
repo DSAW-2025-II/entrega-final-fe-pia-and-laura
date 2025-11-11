@@ -41,7 +41,15 @@ export default function SearchRide() {
 
       {/* Mapa */}
       <div className="absolute top-36 left-0 w-full h-[70%]">
-        <SearchRideMap selectedLocation={selectedLocation} />
+        <SearchRideMap
+            selectedLocation={selectedLocation}
+            onMapClick={(coords) =>
+            setSelectedLocation({
+            longitude: coords.longitude,
+            latitude: coords.latitude,
+            })
+            }
+        />
       </div>
 
       {/* Panel inferior */}
