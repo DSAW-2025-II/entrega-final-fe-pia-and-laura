@@ -1,10 +1,12 @@
 import { useState } from "react";
 import SearchRideMap from "../components/SearchRideMap";
+import { useNavigate } from "react-router-dom";
 
 export default function SearchRide() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]); // sugerencias
   const [selectedLocation, setSelectedLocation] = useState(null); // punto elegido
+  const navigate = useNavigate();
 
   const handleSearch = async (text) => {
     setQuery(text);
@@ -32,6 +34,25 @@ export default function SearchRide() {
     setResults([]); // ocultar lista
   };
 
+  const handleMapClick = (location) => {
+    setSelectedLocation(location);
+    setQuery(location.name);
+  };
+
+  const handleSearchClick = () => {
+    if (!selectedLocation) {
+      alert("Selecciona un destino antes de continuar.");
+      return;
+    }
+
+    // 🔹 Redirigir a la vista de ofertas con query params (para el header dinámico)
+    navigate(
+      `/offers?from=Universidad%20de%20La%20Sabana&to=${encodeURIComponent(
+        selectedLocation.name
+      )}`
+    );
+  };
+
   return (
     <div className="relative w-full h-screen bg-white font-[Plus Jakarta Sans]">
       {/* Header */}
@@ -42,13 +63,8 @@ export default function SearchRide() {
       {/* Mapa */}
       <div className="absolute top-36 left-0 w-full h-[70%]">
         <SearchRideMap
-            selectedLocation={selectedLocation}
-            onMapClick={(coords) =>
-            setSelectedLocation({
-            longitude: coords.longitude,
-            latitude: coords.latitude,
-            })
-            }
+          selectedLocation={selectedLocation}
+          onMapClick={handleMapClick}
         />
       </div>
 
@@ -58,6 +74,7 @@ export default function SearchRide() {
           <span className="text-gray-700 font-semibold text-lg">
             Edificio K, Universidad de La Sabana
           </span>
+
           <input
             type="text"
             value={query}
@@ -84,7 +101,7 @@ export default function SearchRide() {
 
         <button
           className="bg-gray-800 hover:bg-gray-700 text-white font-bold px-10 py-4 rounded-xl flex items-center justify-center gap-2"
-          onClick={() => console.log("Destino seleccionado:", selectedLocation)}
+          onClick={handleSearchClick}
         >
           Search →
         </button>

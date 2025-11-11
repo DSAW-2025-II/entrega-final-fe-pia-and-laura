@@ -15,14 +15,35 @@ export default function SearchRideMap({ selectedLocation, onMapClick }) {
         ...prev,
         longitude: selectedLocation.longitude,
         latitude: selectedLocation.latitude,
-        zoom: 15,
       }));
     }
   }, [selectedLocation]);
-  const handleClick = (e) => {
+  const handleClick = async (e) => {
     const { lng, lat } = e.lngLat;
-    if (onMapClick) {
-      onMapClick({ longitude: lng, latitude: lat });
+
+    // Llamar API de Mapbox para obtener dirección (reverse geocoding)
+    try {
+      const res = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&language=es&country=CO`
+      );
+      const data = await res.json();
+      const place = data.features?.[0];
+
+      if (place) {
+        onMapClick({
+          name: place.place_name,
+          longitude: lng,
+          latitude: lat,
+        });
+      } else {
+        onMapClick({
+          name: `(${lat.toFixed(5)}, ${lng.toFixed(5)})`,
+          longitude: lng,
+          latitude: lat,
+        });
+      }
+    } catch (err) {
+      console.error("Error al obtener dirección:", err);
     }
   };
 
