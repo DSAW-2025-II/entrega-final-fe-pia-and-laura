@@ -7,6 +7,7 @@ export default function SearchRideMap() {
     latitude: 4.8616,
     zoom: 14,
   });
+    console.log("TOKEN:", import.meta.env.VITE_MAPBOX_TOKEN);
 
   return (
     <div className="relative w-full h-[600px] rounded-2xl overflow-hidden shadow-lg">
