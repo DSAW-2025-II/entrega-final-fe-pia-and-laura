@@ -327,8 +327,10 @@ export default function CreateTrip() {
 
       {/* 🔹 Botón de cierre (ya no se cierra por tiempo) */}
       <button
-        onClick={() => navigate("/driverHome")}
-        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl font-bold"
+        onClick={() => {
+          setShowSuccessPopup(false);
+          navigate("/driverHome");
+        }}className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl font-bold"
       >
         ✕
       </button>
