@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Map, { Marker, NavigationControl } from "react-map-gl";
 
 export default function SearchRideMap({ selectedLocation, onMapClick }) {
