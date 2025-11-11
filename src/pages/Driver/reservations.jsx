@@ -193,7 +193,7 @@ export default function ReservationsPage() {
     navigate("/reservations");
   };
 
-  const handleBackClick = () => navigate("/driverHome");
+  const handleBackClick = () => navigate(-1);
 
   /* ==== RENDER ==== */
   return (
