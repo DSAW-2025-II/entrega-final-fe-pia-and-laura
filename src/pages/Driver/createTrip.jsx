@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import logo2 from "../../../assets/logo2.png";
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -20,6 +21,9 @@ export default function CreateTrip() {
   });
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState({});
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [tripData, setTripData] = useState(null);
+
 
 
   useEffect(() => {
@@ -49,25 +53,25 @@ export default function CreateTrip() {
   setErrors({}); // limpia errores anteriores
 
   const newErrors = {};
-if (!trip.startPoint) newErrors.startPoint = "Required field *";
-if (!trip.endPoint) newErrors.endPoint = "Required field *";
-if (!trip.route) newErrors.route = "Required field *";
-if (!trip.departureTime) {
-  newErrors.departureTime = "Required field *";
-} else {
-  const selectedDate = new Date(trip.departureTime);
-  const now = new Date();
+    if (!trip.startPoint) newErrors.startPoint = "Required field *";
+    if (!trip.endPoint) newErrors.endPoint = "Required field *";
+    if (!trip.route) newErrors.route = "Required field *";
+    if (!trip.departureTime) {
+      newErrors.departureTime = "Required field *";
+    } else {
+      const selectedDate = new Date(trip.departureTime);
+      const now = new Date();
+    
+      if (selectedDate < now) {
+        newErrors.departureTime = "Date and time must be in the future.*";
+      }
+    }
 
-  if (selectedDate < now) {
-    newErrors.departureTime = "Date and time must be in the future.*";
-  }
-}
+    if (!trip.seats) newErrors.seats = "Required field *";
+    else if (trip.seats <= 0) newErrors.seats = "Number of seats must be greater than 0.";
 
-if (!trip.seats) newErrors.seats = "Required field *";
-else if (trip.seats <= 0) newErrors.seats = "Number of seats must be greater than 0.";
-
-if (!trip.price) newErrors.price = "Required field *";
-else if (trip.price < 1400) newErrors.price = "Price per passenger must be at least $1,400.";
+    if (!trip.price) newErrors.price = "Required field *";
+    else if (trip.price < 1400) newErrors.price = "Price per passenger must be at least $1,400.";
 
   if (Object.keys(newErrors).length > 0) {
     setErrors(newErrors);
@@ -80,43 +84,54 @@ else if (trip.price < 1400) newErrors.price = "Price per passenger must be at le
   }
 
   try {
-    const res = await fetch(`${API_URL}/trips`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        ...trip,
-        seats: Number(trip.seats),
-        price: Number(trip.price),
-        driver: fullUser?._id || fullUser?.id,
+  const res = await fetch(`${API_URL}/trips`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      ...trip,
+      seats: Number(trip.seats),
+      price: Number(trip.price),
+      driver: fullUser?._id || fullUser?.id,
+    }),
+  });
+
+  const data = await res.json();
+
+  if (res.ok) {
+    // 🟢 Mostrar popup con datos del viaje
+    setTripData({
+      destination: data.endPoint,
+      time: new Date(data.departureTime).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
       }),
+      price: data.price,
+      driver: fullUser?.name || "Driver Name",
     });
 
-    const data = await res.json();
+    setShowSuccessPopup(true);
 
-    if (res.ok) {
-      setMessage("✅ Trip created successfully!");
-      setTimeout(() => navigate("/driverHome"), 1000);
-      setTrip({
-        startPoint: "",
-        endPoint: "",
-        route: "",
-        departureTime: "",
-        seats: "",
-        price: "",
-      });
-    } else {
-      setMessage(`❌ ${data.message || "Error creating trip"}`);
-    }
-  } catch (err) {
-    console.error("Error creating trip:", err);
-    setMessage("❌ Error connecting to server.");
+      // Limpia los campos
+    setTrip({
+      startPoint: "",
+      endPoint: "",
+      route: "",
+      departureTime: "",
+      seats: "",
+      price: "",
+    });
+  } else {
+    setMessage(`❌ ${data.message || "Error creating trip"}`);
   }
-};
+} catch (err) {
+  console.error("Error creating trip:", err);
+  setMessage("❌ Error connecting to server.");
+}
 
-
+  };
   return (
     <div className="relative flex flex-col items-center w-full min-h-screen bg-white p-6 font-[Plus Jakarta Sans]">
       {/* Header */}
@@ -296,6 +311,54 @@ else if (trip.price < 1400) newErrors.price = "Price per passenger must be at le
         >
           Create →
         </button>
+
+{showSuccessPopup && tripData && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div className="bg-white rounded-2xl p-8 w-[90%] max-w-md relative shadow-xl animate-fadeIn">
+
+      {/* 🔹 Logo arriba centrado */}
+      <div className="flex justify-center mb-4">
+        <img
+          src={logo2}
+          alt="Wheels Unisabana Logo"
+          className="w-32 h-auto object-contain"
+        />
+      </div>
+
+      {/* 🔹 Botón de cierre (ya no se cierra por tiempo) */}
+      <button
+        onClick={() => navigate("/driverHome")}
+        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl font-bold"
+      >
+        ✕
+      </button>
+
+      {/* 🔹 Contenido principal */}
+      <div className="text-center mt-4">
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          Your ride is published
+        </h2>
+        <p className="text-base text-gray-700 mb-6">
+          You can see details on activity
+        </p>
+
+        {/* 🔹 Tarjeta del viaje */}
+        <div className="bg-gray-800 text-white rounded-2xl p-5 flex justify-between items-center">
+          <div className="text-left">
+            <p className="text-lg font-normal">To: {tripData.destination}</p>
+            <p className="text-2xl font-bold">{tripData.time}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-lg font-semibold">{tripData.driver}</p>
+            <p className="text-2xl font-bold">${tripData.price}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+
 
         {/* Mensaje */}
         {message && (
