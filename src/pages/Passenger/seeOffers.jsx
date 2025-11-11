@@ -9,22 +9,27 @@ export default function SeeOffers() {
   const [filterSeats, setFilterSeats] = useState(null);
 
   useEffect(() => {
-    fetchOffers();
+    fetchTrips();
   }, []);
 
-  const fetchOffers = async () => {
-    try {
-      const res = await fetch(`${API_URL}/trips`);
-      const data = await res.json();
-      setOffers(data);
-    } catch (error) {
-      console.error("Error fetching offers:", error);
+const fetchTrips = async (minSeats = null) => {
+  try {
+    let url = `${import.meta.env.VITE_API_BASE_URL}/trips`;
+    if (minSeats) {
+      url += `?seats=${minSeats}`;
     }
-  };
 
-  const filteredOffers = filterSeats
-    ? offers.filter((offer) => offer.seatsLeft === filterSeats)
-    : offers;
+    const res = await fetch(url);
+    const data = await res.json();
+    setTrips(data);
+  } catch (err) {
+    console.error("Error fetching trips:", err);
+  }
+};
+
+  const filteredTrips = filterSeats
+    ? trips.filter((trip) => trip.seatsLeft === filterSeats)
+    : trips;
 
   return (
     <div className="min-h-screen bg-white p-6 flex flex-col">
@@ -33,17 +38,13 @@ export default function SeeOffers() {
         <h1 className="text-3xl font-bold text-gray-900">Offers</h1>
 
         <div className="flex items-center gap-2">
-          <select
-            onChange={(e) => setFilterSeats(Number(e.target.value) || null)}
-            className="border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-          >
-            <option value="">Filter by seats left</option>
-            {[1, 2, 3, 4].map((n) => (
-              <option key={n} value={n}>
-                {n} seat{n > 1 && "s"} left
-              </option>
-            ))}
-          </select>
+          <select onChange={(e) => fetchTrips(e.target.value)}>
+            <option value="">Todos</option>
+            <option value="1">1+</option>
+            <option value="2">2+</option>
+            <option value="3">3+</option>
+            <option value="4">4+</option>
+            </select>
         </div>
       </div>
 
