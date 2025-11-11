@@ -53,33 +53,41 @@ export default function SeeOffers() {
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Offers List */}
         <div className="flex-1 flex flex-col gap-3">
+          {console.log("Offers from backend:", offers)}
           {filteredOffers.map((offer) => (
             <div
-              key={offer._id}
-              onClick={() => setSelectedOffer(offer)}
-              className={`flex justify-between items-center rounded-2xl px-4 py-3 cursor-pointer transition-all shadow-sm 
-                ${
-                  selectedOffer?._id === offer._id
-                    ? "bg-amber-400 text-white"
-                    : "bg-slate-800 text-white hover:bg-slate-700"
-                }`}
-            >
-              <div className="flex flex-col">
-                <p className="text-sm font-semibold">To: {offer.destination}</p>
-                <p className="text-xs flex items-center gap-1 mt-1">
-                  <Wallet size={14} /> {offer.driverName}
-                </p>
-                <p className="text-xs mt-1">{offer.time}</p>
-              </div>
+    key={offer._id}
+    className="p-4 bg-gray-800 rounded-xl mb-3 shadow-md hover:shadow-lg transition"
+  >
+    <h3 className="text-lg font-semibold text-white mb-1">
+      {offer.startPoint ?? "Sin origen"} ➜ {offer.endPoint ?? "Sin destino"}
+    </h3>
 
-              <div className="flex flex-col items-end">
-                <span className="text-xs bg-white/10 px-2 py-1 rounded-lg">
-                  {offer.seatsLeft.toString().padStart(2, "0")}
-                </span>
-                <p className="font-semibold mt-1">${offer.price}</p>
-              </div>
-            </div>
-          ))}
+    <p className="text-gray-400 text-sm mb-2">
+      Ruta: {offer.route || "No especificada"}
+    </p>
+
+    <div className="flex justify-between text-sm text-gray-300">
+      <span>
+        🕒{" "}
+        {offer.departureTime
+          ? new Date(offer.departureTime).toLocaleString("es-CO", {
+              dateStyle: "short",
+              timeStyle: "short",
+            })
+          : "Sin hora"}
+      </span>
+
+      <span>
+        💺 {offer.seats != null ? offer.seats.toString().padStart(2, "0") : "00"}
+      </span>
+
+      <span>
+        💰 {offer.price != null ? `$${offer.price}` : "N/A"}
+      </span>
+    </div>
+  </div>
+))}
         </div>
 
         {/* Detail panel */}
