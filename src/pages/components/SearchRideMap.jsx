@@ -9,7 +9,16 @@ export default function SearchRideMap({ selectedLocation, onMapClick }) {
   });
 
   const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
-
+  useEffect(() => {
+    if (selectedLocation) {
+      setViewState((prev) => ({
+        ...prev,
+        longitude: selectedLocation.longitude,
+        latitude: selectedLocation.latitude,
+        zoom: 15,
+      }));
+    }
+  }, [selectedLocation]);
   const handleClick = (e) => {
     const { lng, lat } = e.lngLat;
     if (onMapClick) {
