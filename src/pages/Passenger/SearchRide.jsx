@@ -6,6 +6,11 @@ export default function SearchRide() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]); // sugerencias
   const [selectedLocation, setSelectedLocation] = useState(null); // punto elegido
+  const [selectedSeats, setSelectedSeats] = useState("");
+
+  const handleFilterChange = (e) => {
+    setSelectedSeats(e.target.value);
+  };
   const navigate = useNavigate();
 
   const handleSearch = async (text) => {
@@ -53,10 +58,43 @@ const handleSearchClick = () => {
 
   return (
     <div className="relative w-full h-screen bg-white font-[Plus Jakarta Sans]">
-      {/* Header */}
-      <div className="absolute top-10 left-10 text-gray-800 font-bold text-4xl">
-        Search a Ride
+{/* Header */}
+    <header className="flex items-center gap-3 mb-2">
+      {/* Flecha de retroceso */}
+      <button
+        className="text-gray-800 text-2xl"
+        onClick={() => navigate("/passengerHome")}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+          className="w-6 h-6"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+        </svg>
+      </button>
+
+      {/* Título principal */}
+      <h1 className="text-4xl font-bold text-gray-900">Search a ride</h1>
+
+      {/* Filtro de asientos (sin cambios) */}
+      <div className="ml-auto flex items-center bg-white border border-gray-200 rounded-full px-4 py-2 shadow-sm">
+        <select
+          value={selectedSeats}
+          onChange={handleFilterChange}
+          className="bg-transparent border-none text-gray-700 font-medium outline-none"
+        >
+          <option value="">Seats left</option>
+          <option value="1">1+</option>
+          <option value="2">2+</option>
+          <option value="3">3+</option>
+          <option value="4">4+</option>
+        </select>
       </div>
+    </header>
 
       {/* Mapa */}
       <div className="absolute top-36 left-0 w-full h-[70%]">
@@ -70,14 +108,14 @@ const handleSearchClick = () => {
       <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col md:flex-row gap-6 items-center bg-white p-6 rounded-2xl shadow-lg w-[90%] max-w-5xl">
         <div className="flex flex-col w-full md:w-2/3 relative">
           <span className="text-gray-700 font-semibold text-lg">
-            Edificio K, Universidad de La Sabana
+            Enter your destination as an address or click on the map:
           </span>
 
           <input
             type="text"
             value={query}
             onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Enter your destination"
+            placeholder="Kilometro 7 Autopista Norte costado Occidental , Chía, Cundinamarca"
             className="mt-3 border border-gray-300 rounded-xl p-3 text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400"
           />
 
