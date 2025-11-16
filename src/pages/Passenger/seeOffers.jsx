@@ -70,6 +70,14 @@ const SkeletonCard = () => (
 const filteredOffers = selectedSeats
   ? trips.filter((trip) => trip.seats >= parseInt(selectedSeats))
   : trips;
+const handleBookTrip = () => {
+  if (!selectedOffer) return;
+
+  console.log("Booking trip:", selectedOffer);
+  
+  // Luego agregamos el POST real
+  alert(`You chose the ride with ${selectedOffer.driver?.name}`);
+};
 
 
 
@@ -231,7 +239,15 @@ return (
                 ${selectedOffer.price ?? 0}
               </h2>
             </div>
+            <button
+              className="mt-6 w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-2xl shadow-lg transition"
+              onClick={handleBookTrip}
+            >
+              Take this ride
+            </button>
+
           </motion.div>
+          
         )}
       </AnimatePresence>
     </div>
