@@ -76,7 +76,8 @@ const ReservationCard = ({ reservation, role, token }) => {
     green: "bg-emerald-400 text-white",
   }[variant];
 
-  const handleCancel = async () => {
+  // === ACCIONES ===
+  const updateStatus = async (newStatus) => {
     try {
       const res = await fetch(`${API_URL}/reservations/${reservation._id}`, {
         method: "PUT",
@@ -84,79 +85,104 @@ const ReservationCard = ({ reservation, role, token }) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ status: "cancelled" }),
+        body: JSON.stringify({ status: newStatus }),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
-      alert("Reservation cancelled successfully");
+      alert(`Reservation ${newStatus}`);
+      window.location.reload();
     } catch (error) {
-      console.error("❌ Error cancelling reservation:", error);
-      alert("Error cancelling reservation");
+      console.error("❌ Error updating reservation:", error);
     }
   };
 
   return (
     <div className={`flex items-center justify-between ${bg} rounded-xl px-4 py-3 w-full max-w-xl shadow-md`}>
-      
+
+      {/* Columna izquierda */}
       <div className="flex flex-col text-left">
         <span className="text-xs opacity-90 font-medium">
           To: {reservation.destination || "Unknown"}
         </span>
+
         <span className="font-extrabold text-lg mt-1">
           {reservation.date
-            ? new Date(reservation.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+            ? new Date(reservation.date).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
             : "--:--"}
         </span>
+
+        {role === "passenger" && (
+          <span className="text-xs mt-2 opacity-80">
+            Status: <b className="capitalize">{reservation.status}</b>
+          </span>
+        )}
       </div>
 
-      <div className="flex items-center justify-between w-full px-4">
-        {/* Columna izquierda vacía */}
-        <div className="flex-1"></div>
+      {/* Centro */}
+      <div className="flex items-center justify-center flex-1">
+        <div className="h-10 w-10 flex items-center justify-center bg-white/20 rounded-md">
+          <WalletIcon className="w-5 h-5 text-white" />
+        </div>
+      </div>
 
-        {/* Ícono */}
-        <div className="flex items-center justify-center flex-1">
-          <div className="h-10 w-10 flex items-center justify-center bg-white/20 rounded-md">
-            <WalletIcon className="w-5 h-5 text-white" />
+      {/* Derecha */}
+      <div className="flex flex-col text-right pr-3">
+        {role === "driver" ? (
+          <div className="font-semibold text-sm">
+            Passenger: {reservation.passenger?.name || "Unknown"}
           </div>
-        </div>
+        ) : (
+          <div className="font-semibold text-sm">
+            Driver: {reservation.driver?.name || "Unknown"}
+          </div>
+        )}
 
-        {/* Info + botón */}
-        <div className="flex-1 text-right pr-3">
-          {role === "driver" ? (
-            <>
-              <div className="font-semibold text-sm">
-                Passenger: {reservation.passenger?.name || reservation.passenger?.email || "N/A"}
-              </div>
-              <div className="text-white font-bold">
-                {reservation.price ? `$${reservation.price}` : "--"}
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="font-semibold text-sm">
-                Driver: {reservation.driver?.name || reservation.driver?.email || "N/A"}
-              </div>
-              <div className="text-white font-bold">
-                {reservation.price ? `$${reservation.price}` : "--"}
-              </div>
-            </>
-          )}
-
-          {/* BOTÓN CANCEL */}
-          <button
-            onClick={handleCancel}
-            className="mt-2 px-3 py-1 bg-red-500 text-white text-xs rounded-lg"
-          >
-            Cancel
-          </button>
+        <div className="text-white font-bold">
+          {reservation.price ? `$${reservation.price}` : "--"}
         </div>
+{/* BOTONES SEGÚN QUIÉN ES EL USUARIO */}
+{isDriver ? (
+  reservation.status === "pending" ? (
+    <div className="flex gap-2 mt-3">
+      <button
+        onClick={() => updateStatus("confirmed")}
+        className="px-3 py-1 bg-emerald-500 text-xs rounded-lg"
+      >
+        Accept
+      </button>
+      <button
+        onClick={() => updateStatus("declined")}
+        className="px-3 py-1 bg-red-500 text-xs rounded-lg"
+      >
+        Decline
+      </button>
+    </div>
+  ) : (
+    <span className="text-xs opacity-80 mt-2 capitalize">
+      Status: {reservation.status}
+    </span>
+  )
+) : isPassenger ? (
+  reservation.status !== "cancelled" && (
+    <button
+      onClick={() => updateStatus("cancelled")}
+      className="mt-2 px-3 py-1 bg-red-500 text-white text-xs rounded-lg"
+    >
+      Cancel
+    </button>
+  )
+) : null}
+
       </div>
-
     </div>
   );
 };
+
 
 
 /* ==== MAIN PAGE ==== */
