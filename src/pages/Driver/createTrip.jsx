@@ -11,6 +11,7 @@ const API_URL = import.meta.env.VITE_API_BASE_URL;
 export default function CreateTrip() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
+  const { startCoords, endCoords } = req.body;
 
   const [fullUser, setFullUser] = useState(user);
   const [trip, setTrip] = useState({

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Wallet } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -11,26 +11,35 @@ export default function SeeOffers() {
     const [selectedSeats, setSelectedSeats] = useState("");
     const [selectedOffer, setSelectedOffer] = useState(null);
     const navigate = useNavigate();
-    const fetchTrips = async (minSeats = "") => {
-    try {
-      setLoading(true);
+    const location = useLocation();
+const params = new URLSearchParams(location.search);
 
-      let url = `${API_URL}/trips`;
-      if (minSeats) {
-        url += `?seats=${minSeats}`;
-      }
+const lat = params.get("lat");
+const lng = params.get("lng");
+const radius = params.get("radius") || 5;
 
-      const res = await fetch(url);
-      const data = await res.json();
+  const fetchTrips = async (minSeats = "") => {
+  try {
+    setLoading(true);
 
-      console.log("🟢 Trips from backend:", data);
-      setTrips(data);
-    } catch (error) {
-      console.error("Error fetching trips:", error);
-    } finally {
-      setLoading(false);
+    let url = `${API_URL}/trips/search?lat=${lat}&lng=${lng}&radius=${radius}`;
+
+    if (minSeats) {
+      url += `&seats=${minSeats}`;
     }
-  };
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    console.log("🟢 Trips filtered by destination:", data);
+    setTrips(data);
+  } catch (error) {
+    console.error("Error fetching trips:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchTrips(); // 🔹 carga inicial sin filtro
