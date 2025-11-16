@@ -14,6 +14,12 @@ const WalletIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
+const CloseIcon = () => (
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+    <path d="M18 6L6 18M6 6l12 12" stroke="#111827" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 const BackIcon = ({ className = "w-6 h-6" }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none">
     <path
@@ -68,116 +74,170 @@ const AccountIcon = (filled) => (
 );
 
 /* ==== CARD COMPONENT ==== */
-const ReservationCard = ({ reservation, role, token }) => {
-  const variant = reservation.variant || "dark";
-  const bg = {
-    orange: "bg-amber-500 text-white",
-    dark: "bg-gray-800 text-white",
-    green: "bg-emerald-400 text-white",
-  }[variant];
-  const currentUserId = localStorage.getItem("userId"); 
-  const isRealDriver = reservation.driver === currentUserId;
-  const isRealPassenger = reservation.passenger === currentUserId;
+export function ReservationCard({ reservation, currentUser, onStatusChange }) {
+  const [open, setOpen] = useState(false);
 
-  // === ACCIONES ===
-  const updateStatus = async (newStatus) => {
-    try {
-      const res = await fetch(`${API_URL}/reservations/${reservation._id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
+  // Gestionar comparaciones de id (asegúrate de que currentUser tenga _id o id)
+  const currentId = currentUser?._id || currentUser?.id || null;
+  const driverId = reservation?.driver?._id || reservation?.driver?.id || null;
+  const passengerId = reservation?.passenger?._id || reservation?.passenger?.id || null;
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+  const isDriver = currentId && driverId && String(currentId) === String(driverId);
+  const isPassenger = currentId && passengerId && String(currentId) === String(passengerId);
 
-      alert(`Reservation ${newStatus}`);
-      window.location.reload();
-    } catch (error) {
-      console.error("❌ Error updating reservation:", error);
-    }
+  const handleOpen = (e) => {
+    e.stopPropagation();
+    setOpen(true);
   };
+  const handleClose = () => setOpen(false);
+
+  // Colores por estado (para badge de la izquierda)
+  const badgeColor =
+    reservation.status === "pending"
+      ? "bg-amber-100 text-amber-700"
+      : reservation.status === "confirmed"
+      ? "bg-emerald-100 text-emerald-700"
+      : reservation.status === "cancelled"
+      ? "bg-red-100 text-red-700"
+      : "bg-slate-100 text-slate-700";
 
   return (
-    <div className={`flex items-center justify-between ${bg} rounded-xl px-4 py-3 w-full max-w-xl shadow-md`}>
+    <>
+      {/* === TARJETA MINI (lista) === */}
+<div
+  onClick={handleOpen}
+  className="w-full max-w-[750px] rounded-3xl cursor-pointer shadow-md transition hover:scale-[1.01]"
+  style={{ background: "#1F2739" }}
+>
+  <div className="flex items-center justify-between w-full px-6 py-4">
 
-      {/* Columna izquierda */}
-      <div className="flex flex-col text-left">
-        <span className="text-xs opacity-90 font-medium">
-          To: {reservation.destination || "Unknown"}
-        </span>
+    {/* LEFT SIDE */}
+    <div className="flex flex-col text-white w-[60%]">
+      <span className="text-xs font-semibold opacity-90">
+        To: {reservation.destination}
+      </span>
 
-        <span className="font-extrabold text-lg mt-1">
-          {reservation.date
-            ? new Date(reservation.date).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })
-            : "--:--"}
-        </span>
-
-        {role === "passenger" && (
-          <span className="text-xs mt-2 opacity-80">
-            Status: <b className="capitalize">{reservation.status}</b>
-          </span>
-        )}
-      </div>
-
-      {/* Centro */}
-      <div className="flex items-center justify-center flex-1">
-        <div className="h-10 w-10 flex items-center justify-center bg-white/20 rounded-md">
-          <WalletIcon className="w-5 h-5 text-white" />
-        </div>
-      </div>
-
-      {/* Derecha */}
-      <div className="flex flex-col text-right pr-3">
-        {role === "driver" ? (
-          <div className="font-semibold text-sm">
-            Passenger: {reservation.passenger?.name || "Unknown"}
-          </div>
-        ) : (
-          <div className="font-semibold text-sm">
-            Driver: {reservation.driver?.name || "Unknown"}
-          </div>
-        )}
-
-        <div className="text-white font-bold">
-          {reservation.price ? `$${reservation.price}` : "--"}
-        </div>
-{/* BOTONES SEGÚN QUIÉN ES EL USUARIO */}
-{isRealDriver ? (
-    <div className="flex gap-2">
-        <button
-            onClick={() => handleAction(reservation._id, "accept")}
-            className="bg-green-500 text-white px-3 py-1 rounded"
-        >
-            Aceptar
-        </button>
-        <button
-            onClick={() => handleAction(reservation._id, "decline")}
-            className="bg-red-500 text-white px-3 py-1 rounded"
-        >
-            Rechazar
-        </button>
+      <span className="text-2xl font-extrabold mt-1">
+        {new Date(reservation.date).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </span>
     </div>
-) : isRealPassenger ? (
-    <button
-        onClick={() => handleAction(reservation._id, "cancel")}
-        className="bg-gray-300 text-black px-3 py-1 rounded"
-    >
-        Cancelar
-    </button>
-) : null}
 
-
+    {/* CENTER ICON */}
+    <div className="flex items-center justify-center">
+      <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
+        <WalletIcon className="w-6 h-6" />
       </div>
     </div>
+
+    {/* RIGHT SIDE */}
+    <div className="flex flex-col text-right text-white">
+      <span className="text-sm font-semibold">
+        Passenger: {reservation.passengerName || "Passenger"}
+      </span>
+
+      <span className="text-lg font-extrabold mt-1">
+        ${reservation.price}
+      </span>
+    </div>
+  </div>
+</div>
+
+
+      {/* === OVERLAY OSCURO === */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={handleClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* === PANEL LATERAL === */}
+      <AnimatePresence>
+        {open && (
+          <motion.aside
+            className="fixed top-0 right-0 z-50 h-full w-[420px] p-6"
+            initial={{ x: 420 }}
+            animate={{ x: 0 }}
+            exit={{ x: 420 }}
+            transition={{ type: "spring", stiffness: 260, damping: 30 }}
+          >
+            <div className="relative h-full rounded-2xl overflow-hidden shadow-xl" style={{ background: "#10B981" }}>
+              {/* Close Button */}
+              <button onClick={handleClose} className="absolute right-4 top-4 p-2">
+                <CloseIcon />
+              </button>
+
+              <div className="p-8 text-white h-full flex flex-col justify-between">
+                <div>
+                  {/* Icon top-left */}
+                  <div className="mb-4 w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                    <WalletIcon className="w-5 h-5 text-white" />
+                  </div>
+
+                  <ul className="list-inside list-disc ml-2 space-y-2 mb-6">
+                    <li className="text-lg font-semibold">To: {reservation.destination}</li>
+                    {/* Mostrar conductor si NO eres el conductor dueño */}
+                    {!isDriver && (
+                      <li className="text-base">Driver: <span className="font-medium">{reservation.driver?.name || "Unknown"}</span></li>
+                    )}
+                    <li className="text-sm opacity-90">{new Date(reservation.date).toLocaleString()}</li>
+                  </ul>
+
+                  <div className="mt-6 text-5xl font-extrabold">${reservation.price}</div>
+                </div>
+
+                {/* Botones de acción */}
+                <div className="mt-6">
+                  {/* Si eres conductor y la reserva está pendiente -> mostrar Accept/Decline (verde y naranja) */}
+                  {isDriver && reservation.status === "pending" && (
+                    <>
+                      <button
+                        onClick={() => onStatusChange(reservation._id || reservation.id, "confirmed")}
+                        className="w-full px-6 py-3 rounded-xl bg-emerald-400 text-white font-semibold mb-3 shadow"
+                      >
+                        Accept
+                      </button>
+
+                      <button
+                        onClick={() => onStatusChange(reservation._id || reservation.id, "cancelled")}
+                        className="w-full px-6 py-3 rounded-xl bg-orange-400 text-white font-semibold"
+                      >
+                        Decline
+                      </button>
+                    </>
+                  )}
+
+                  {/* Si eres pasajero y aún está pendiente -> cancelar */}
+                  {isPassenger && reservation.status === "pending" && (
+                    <button
+                      onClick={() => onStatusChange(reservation._id || reservation.id, "cancelled")}
+                      className="w-full px-6 py-3 rounded-xl bg-orange-400 text-white font-semibold"
+                    >
+                      Cancel Reservation
+                    </button>
+                  )}
+
+                  {/* Si ni eres conductor ni pasajero -> solo vista (o botón de info) */}
+                  {!isDriver && !isPassenger && (
+                    <div className="text-white/90 text-center py-3">You are viewing this reservation</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
+    </>
   );
-};
+}
 
 
 
@@ -249,6 +309,29 @@ export default function ReservationsPage() {
   };
 
   const handleBackClick = () => navigate(-1);
+  const handleStatusChange = async (id, newStatus) => {
+  try {
+    await fetch(`${API_URL}/reservations/status/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ status: newStatus }),
+    });
+
+    // Refrescar lista después de cambiar estado
+    setReservations(prev =>
+      ({
+        today: prev.today.map(r => r._id === id ? { ...r, status: newStatus } : r),
+        tomorrow: prev.tomorrow.map(r => r._id === id ? { ...r, status: newStatus } : r),
+      })
+    );
+
+  } catch (err) {
+    console.error("Error updating status:", err);
+  }
+};
 
   /* ==== RENDER ==== */
   return (
@@ -287,12 +370,13 @@ export default function ReservationsPage() {
         {reservations.today && reservations.today.length > 0 ? (
           <div className="flex flex-col gap-4 items-center">
             {reservations.today.map((res) => (
-              <ReservationCard 
-  key={res._id || res.id} 
-  reservation={res} 
-  role={user.role} 
-  token={token}
-/>
+        <ReservationCard
+          key={res._id || res.id}
+          reservation={res}
+          currentUser={user}
+          onStatusChange={handleStatusChange}
+        />
+
 
             ))}
           </div>
@@ -307,12 +391,13 @@ export default function ReservationsPage() {
         {reservations.tomorrow && reservations.tomorrow.length > 0 ? (
           <div className="flex flex-col gap-4 items-center">
             {reservations.tomorrow.map((res) => (
-              <ReservationCard 
-  key={res._id || res.id} 
-  reservation={res} 
-  role={user.role} 
-  token={token}
-/>
+          <ReservationCard
+            key={res._id || res.id}
+            reservation={res}
+            currentUser={user}
+            onStatusChange={handleStatusChange}
+          />
+
             ))}
           </div>
         ) : (
