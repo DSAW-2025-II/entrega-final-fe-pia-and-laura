@@ -41,9 +41,12 @@ const radius = params.get("radius") || 5;
 };
 
 
-  useEffect(() => {
-    fetchTrips(); // 🔹 carga inicial sin filtro
-  }, []);
+useEffect(() => {
+  if (lat && lng) {
+    fetchTrips(selectedSeats);
+  }
+}, [lat, lng, radius, selectedSeats]);
+
 
   const handleFilterChange = (e) => {
     const value = e.target.value;

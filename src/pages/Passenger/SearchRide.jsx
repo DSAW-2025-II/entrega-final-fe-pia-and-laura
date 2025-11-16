@@ -38,6 +38,21 @@ export default function SearchRide() {
     setSelectedLocation(location);
     setQuery(location.name);
   };
+const getCoordsFromText = async (text) => {
+  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+    text
+  )}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  if (!data.features || data.features.length === 0) return null;
+
+  return {
+    lng: data.features[0].center[0],
+    lat: data.features[0].center[1],
+  };
+};
 
 const handleSearchClick = () => {
   if (!selectedLocation) {
