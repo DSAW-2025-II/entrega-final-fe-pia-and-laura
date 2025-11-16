@@ -15,6 +15,7 @@ import CarSettings from "./pages/Driver/carSettings.jsx";
 import CreateTrip from "./pages/Driver/createTrip.jsx";
 import SeeOffers from "./pages/Passenger/seeOffers.jsx";
 import SearchRide from "./pages/Passenger/SearchRide.jsx";
+import ConfirmRide from "./pages/Passenger/confirmRide.jsx";
 function App() {
   return (
     <BrowserRouter>
@@ -34,6 +35,7 @@ function App() {
         <Route path="/createTrip" element={<ProtectedRoute allowedRoles={["driver"]}><CreateTrip /></ProtectedRoute>} />
         <Route path="/seeOffers" element={<ProtectedRoute><SeeOffers /></ProtectedRoute>} />
         <Route path="/searchRide" element={<ProtectedRoute><SearchRide /></ProtectedRoute>} />
+        <Route path="/confirmRide" element={<ProtectedRoute><ConfirmRide /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );

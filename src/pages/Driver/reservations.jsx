@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext.jsx";
+import { motion, AnimatePresence } from "framer-motion";
+
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -66,7 +68,7 @@ const AccountIcon = (filled) => (
 );
 
 /* ==== CARD COMPONENT ==== */
-const ReservationCard = ({ reservation, role }) => {
+const ReservationCard = ({ reservation, role, token }) => {
   const variant = reservation.variant || "dark";
   const bg = {
     orange: "bg-amber-500 text-white",
@@ -74,8 +76,30 @@ const ReservationCard = ({ reservation, role }) => {
     green: "bg-emerald-400 text-white",
   }[variant];
 
+  const handleCancel = async () => {
+    try {
+      const res = await fetch(`${API_URL}/reservations/${reservation._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: "cancelled" }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      alert("Reservation cancelled successfully");
+    } catch (error) {
+      console.error("❌ Error cancelling reservation:", error);
+      alert("Error cancelling reservation");
+    }
+  };
+
   return (
     <div className={`flex items-center justify-between ${bg} rounded-xl px-4 py-3 w-full max-w-xl shadow-md`}>
+      
       <div className="flex flex-col text-left">
         <span className="text-xs opacity-90 font-medium">
           To: {reservation.destination || "Unknown"}
@@ -88,43 +112,52 @@ const ReservationCard = ({ reservation, role }) => {
       </div>
 
       <div className="flex items-center justify-between w-full px-4">
-  {/* Columna izquierda vacía para balance visual */}
-  <div className="flex-1"></div>
+        {/* Columna izquierda vacía */}
+        <div className="flex-1"></div>
 
-  {/* Ícono centrado */}
-  <div className="flex items-center justify-center flex-1">
-    <div className="h-10 w-10 flex items-center justify-center bg-white/20 rounded-md">
-      <WalletIcon className="w-5 h-5 text-white" />
-    </div>
-  </div>
+        {/* Ícono */}
+        <div className="flex items-center justify-center flex-1">
+          <div className="h-10 w-10 flex items-center justify-center bg-white/20 rounded-md">
+            <WalletIcon className="w-5 h-5 text-white" />
+          </div>
+        </div>
 
-  {/* Texto alineado a la derecha con algo de aire */}
-  <div className="flex-1 text-right pr-3">
-  {role === "driver" ? (
-    <>
-      <div className="font-semibold text-sm">
-        Passenger: {reservation.passenger?.name || reservation.passenger?.email || "N/A"}
+        {/* Info + botón */}
+        <div className="flex-1 text-right pr-3">
+          {role === "driver" ? (
+            <>
+              <div className="font-semibold text-sm">
+                Passenger: {reservation.passenger?.name || reservation.passenger?.email || "N/A"}
+              </div>
+              <div className="text-white font-bold">
+                {reservation.price ? `$${reservation.price}` : "--"}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="font-semibold text-sm">
+                Driver: {reservation.driver?.name || reservation.driver?.email || "N/A"}
+              </div>
+              <div className="text-white font-bold">
+                {reservation.price ? `$${reservation.price}` : "--"}
+              </div>
+            </>
+          )}
+
+          {/* BOTÓN CANCEL */}
+          <button
+            onClick={handleCancel}
+            className="mt-2 px-3 py-1 bg-red-500 text-white text-xs rounded-lg"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
-      <div className="text-white font-bold">
-        {reservation.price ? `$${reservation.price}` : "--"}
-      </div>
-    </>
-  ) : (
-    <>
-      <div className="font-semibold text-sm">
-        Driver: {reservation.driver?.name || reservation.driver?.email || "N/A"}
-      </div>
-      <div className="text-white font-bold">
-        {reservation.price ? `$${reservation.price}` : "--"}
-      </div>
-    </>
-  )}
-</div>
-</div>
 
     </div>
   );
 };
+
 
 /* ==== MAIN PAGE ==== */
 export default function ReservationsPage() {
@@ -232,7 +265,13 @@ export default function ReservationsPage() {
         {reservations.today && reservations.today.length > 0 ? (
           <div className="flex flex-col gap-4 items-center">
             {reservations.today.map((res) => (
-              <ReservationCard key={res._id || res.id} reservation={res} role={user.role} />
+              <ReservationCard 
+  key={res._id || res.id} 
+  reservation={res} 
+  role={user.role} 
+  token={token}
+/>
+
             ))}
           </div>
         ) : (
@@ -246,7 +285,12 @@ export default function ReservationsPage() {
         {reservations.tomorrow && reservations.tomorrow.length > 0 ? (
           <div className="flex flex-col gap-4 items-center">
             {reservations.tomorrow.map((res) => (
-              <ReservationCard key={res._id || res.id} reservation={res} role={user.role} />
+              <ReservationCard 
+  key={res._id || res.id} 
+  reservation={res} 
+  role={user.role} 
+  token={token}
+/>
             ))}
           </div>
         ) : (

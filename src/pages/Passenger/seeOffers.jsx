@@ -10,6 +10,7 @@ export default function SeeOffers() {
     const [loading, setLoading] = useState(true);
     const [selectedSeats, setSelectedSeats] = useState("");
     const [selectedOffer, setSelectedOffer] = useState(null);
+    const [reservationNotification, setReservationNotification] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 const params = new URLSearchParams(location.search);
@@ -70,16 +71,45 @@ const SkeletonCard = () => (
 const filteredOffers = selectedSeats
   ? trips.filter((trip) => trip.seats >= parseInt(selectedSeats))
   : trips;
-const handleBookTrip = () => {
+const handleBookTrip = async () => {
   if (!selectedOffer) return;
 
-  console.log("Booking trip:", selectedOffer);
-  
-  // Luego agregamos el POST real
-  alert(`You chose the ride with ${selectedOffer.driver?.name}`);
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    console.error("You must be logged in to book a trip");
+    navigate("/login");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/reservations`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        trip: selectedOffer._id,
+        seats: 1,
+      }),
+    });
+
+    const data = await res.json();
+    console.log("Reserva creada:", data);
+
+    if (!res.ok) {
+      alert(data.message || "Error creating reservation");
+      return;
+    }
+
+    console.log("Reservation created successfully!");
+    navigate("/myReservations");
+  } catch (error) {
+    console.error("Error creating reservation:", error);
+    console.error("Error creating reservation");
+  }
 };
-
-
 
 return (
   <div className="p-8 min-h-screen bg-gray-50 flex flex-col gap-4">
@@ -241,16 +271,52 @@ return (
             </div>
             <button
               className="mt-6 w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-2xl shadow-lg transition"
-              onClick={handleBookTrip}
+              onClick={() =>
+                navigate("/confirmRide", {
+                  state: {
+                    trip: selectedOffer,
+                  }
+                })
+              }
             >
               Take this ride
             </button>
-
           </motion.div>
           
         )}
       </AnimatePresence>
     </div>
+    <AnimatePresence>
+  {reservationNotification && (
+    <motion.div
+      initial={{ opacity: 0, y: -30 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -30 }}
+      className="fixed top-8 right-8 bg-white shadow-2xl border rounded-2xl p-6 w-80 z-50"
+    >
+      <div className="flex justify-between items-start">
+        <h3 className="text-xl font-bold text-gray-900">
+          Your ride is booked
+        </h3>
+        <button onClick={() => setReservationNotification(false)}>
+          <X size={18} />
+        </button>
+      </div>
+
+      <p className="text-gray-600 mt-1">
+        Now you're waiting for driver acceptance
+      </p>
+
+      <div className="mt-4 bg-gray-900 text-white rounded-xl p-4">
+        <div className="flex justify-between">
+          <span>{new Date(selectedOffer?.departureTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</span>
+          <span>${selectedOffer?.price}</span>
+        </div>
+      </div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
   </div>
 );
 
