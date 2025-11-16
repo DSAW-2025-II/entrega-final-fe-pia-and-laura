@@ -11,8 +11,6 @@ const API_URL = import.meta.env.VITE_API_BASE_URL;
 export default function CreateTrip() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
-  const { startCoords, endCoords } = req.body;
-
   const [fullUser, setFullUser] = useState(user);
   const [trip, setTrip] = useState({
     startPoint: "",
@@ -92,6 +90,7 @@ const handleChange = (e) => {
     setMessage("❌ No token found. Please log in.");
     return;
   }
+  console.log("Trip being sent:", trip);
 
   try {
   const res = await fetch(`${API_URL}/trips`, {
@@ -102,9 +101,11 @@ const handleChange = (e) => {
     },
     body: JSON.stringify({
       ...trip,
-      seats: Number(trip.seats),
-      price: Number(trip.price),
-      driver: fullUser?._id || fullUser?.id,
+        startCoords: trip.startCoords,
+        endCoords: trip.endCoords,
+        seats: Number(trip.seats),
+        price: Number(trip.price),
+        driver: fullUser?._id || fullUser?.id,
     }),
   });
 
