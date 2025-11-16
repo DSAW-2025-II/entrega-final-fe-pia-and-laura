@@ -115,8 +115,9 @@ return (
 
     {/* Subtítulo encima de las tarjetas */}
     <p className="text-sm text-gray-500 px-1">
-      Results near: <span className="font-medium text-gray-700">{offer.startPoint ?? "Unknown location"}</span>
+      Results near: <span className="font-medium text-gray-700">{queryName ?? "Unknown location"}</span>
     </p>
+
 
 
     {/* Contenedor principal */}
