@@ -75,6 +75,9 @@ const ReservationCard = ({ reservation, role, token }) => {
     dark: "bg-gray-800 text-white",
     green: "bg-emerald-400 text-white",
   }[variant];
+  const currentUserId = localStorage.getItem("userId"); 
+  const isRealDriver = reservation.driver === currentUserId;
+  const isRealPassenger = reservation.passenger === currentUserId;
 
   // === ACCIONES ===
   const updateStatus = async (newStatus) => {
@@ -146,37 +149,30 @@ const ReservationCard = ({ reservation, role, token }) => {
           {reservation.price ? `$${reservation.price}` : "--"}
         </div>
 {/* BOTONES SEGÚN QUIÉN ES EL USUARIO */}
-{isDriver ? (
-  reservation.status === "pending" ? (
-    <div className="flex gap-2 mt-3">
-      <button
-        onClick={() => updateStatus("confirmed")}
-        className="px-3 py-1 bg-emerald-500 text-xs rounded-lg"
-      >
-        Accept
-      </button>
-      <button
-        onClick={() => updateStatus("declined")}
-        className="px-3 py-1 bg-red-500 text-xs rounded-lg"
-      >
-        Decline
-      </button>
+{isRealDriver ? (
+    <div className="flex gap-2">
+        <button
+            onClick={() => handleAction(reservation._id, "accept")}
+            className="bg-green-500 text-white px-3 py-1 rounded"
+        >
+            Aceptar
+        </button>
+        <button
+            onClick={() => handleAction(reservation._id, "decline")}
+            className="bg-red-500 text-white px-3 py-1 rounded"
+        >
+            Rechazar
+        </button>
     </div>
-  ) : (
-    <span className="text-xs opacity-80 mt-2 capitalize">
-      Status: {reservation.status}
-    </span>
-  )
-) : isPassenger ? (
-  reservation.status !== "cancelled" && (
+) : isRealPassenger ? (
     <button
-      onClick={() => updateStatus("cancelled")}
-      className="mt-2 px-3 py-1 bg-red-500 text-white text-xs rounded-lg"
+        onClick={() => handleAction(reservation._id, "cancel")}
+        className="bg-gray-300 text-black px-3 py-1 rounded"
     >
-      Cancel
+        Cancelar
     </button>
-  )
 ) : null}
+
 
       </div>
     </div>
