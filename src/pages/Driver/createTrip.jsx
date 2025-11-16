@@ -93,21 +93,22 @@ const handleChange = (e) => {
   console.log("Trip being sent:", trip);
 
   try {
-  const res = await fetch(`${API_URL}/trips/search?lat=${selectedCoords.lat}&lng=${selectedCoords.lng}&radius=5`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      ...trip,
-        startCoords: trip.startCoords,
-        endCoords: trip.endCoords,
-        seats: Number(trip.seats),
-        price: Number(trip.price),
-        driver: fullUser?._id || fullUser?.id,
-    }),
-  });
+  const res = await fetch(`${API_URL}/trips`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  },
+  body: JSON.stringify({
+    ...trip,
+    startCoords: trip.startCoords,
+    endCoords: trip.endCoords,
+    seats: Number(trip.seats),
+    price: Number(trip.price),
+    driver: fullUser?._id || fullUser?.id,
+  }),
+});
+
 
   const data = await res.json();
 
