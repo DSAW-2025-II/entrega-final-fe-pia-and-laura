@@ -115,7 +115,7 @@ return (
 
     {/* Subtítulo encima de las tarjetas */}
     <p className="text-sm text-gray-500 px-1">
-      Results near: <span className="font-medium text-gray-700">{queryName}</span>
+      Results near: <span className="font-medium text-gray-700">{offer.startPoint ?? "Unknown location"}</span>
     </p>
 
 
@@ -154,7 +154,7 @@ return (
               >
                 <div>
                   <p className="font-semibold text-xl">
-                    To: {offer.startPoint ?? "Sin origen"}
+                    From: {offer.startPoint ?? "Sin origen"}
                   </p>
                   <p className="text-lg opacity-80">
                     🕒{" "}
@@ -207,8 +207,8 @@ return (
 
             <ul className="space-y-3 text-lg">
               <li>
-                <span className="font-semibold text-md">To:</span>{" "}
-                {selectedOffer.endPoint ?? "Sin destino"}
+                <span className="font-semibold text-md">From:</span>{" "}
+                {selectedOffer.startPoint ?? "Sin origen"}
               </li>
               <li>
                 <span className="font-semibold text-md">Driver:</span>{" "}
