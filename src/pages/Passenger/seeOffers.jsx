@@ -16,6 +16,7 @@ const params = new URLSearchParams(location.search);
 
 const lat = params.get("lat");
 const lng = params.get("lng");
+const queryName = params.get("query");
 const radius = params.get("radius") || 5;
 
   const fetchTrips = async (minSeats = "") => {
@@ -114,8 +115,9 @@ return (
 
     {/* Subtítulo encima de las tarjetas */}
     <p className="text-sm text-gray-500 px-1">
-      From: <span className="font-medium text-gray-700">Location</span>
+      Results near: <span className="font-medium text-gray-700">{queryName}</span>
     </p>
+
 
     {/* Contenedor principal */}
     <div className="flex flex-col lg:flex-row gap-6">
@@ -152,7 +154,7 @@ return (
               >
                 <div>
                   <p className="font-semibold text-xl">
-                    To: {offer.endPoint ?? "Sin destino"}
+                    To: {offer.startPoint ?? "Sin origen"}
                   </p>
                   <p className="text-lg opacity-80">
                     🕒{" "}
