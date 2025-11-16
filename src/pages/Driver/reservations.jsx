@@ -135,7 +135,7 @@ export function ReservationCard({ reservation, currentUser, onStatusChange }) {
     {/* RIGHT SIDE */}
     <div className="flex flex-col text-right text-white">
       <span className="text-sm font-semibold">
-        Passenger: {reservation.passengerName || "Passenger"}
+        Passenger: {reservation?.passenger?.name || "Passenger"}
       </span>
 
       <span className="text-lg font-extrabold mt-1">
