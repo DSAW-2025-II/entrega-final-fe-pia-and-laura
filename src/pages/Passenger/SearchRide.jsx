@@ -39,19 +39,17 @@ export default function SearchRide() {
     setQuery(location.name);
   };
 
-  const handleSearchClick = () => {
-    if (!selectedLocation) {
-      alert("Selecciona un destino antes de continuar.");
-      return;
-    }
+const handleSearchClick = () => {
+  if (!selectedLocation) {
+    alert("Selecciona un destino antes de continuar.");
+    return;
+  }
 
-    // 🔹 Redirigir a la vista de ofertas con query params (para el header dinámico)
-    navigate(
-      `/offers?from=Universidad%20de%20La%20Sabana&to=${encodeURIComponent(
-        selectedLocation.name
-      )}`
-    );
-  };
+  navigate(
+    `/seeOffers?to=${encodeURIComponent(selectedLocation.name)}&lat=${selectedLocation.latitude}&lng=${selectedLocation.longitude}&radius=5`
+  );
+};
+
 
   return (
     <div className="relative w-full h-screen bg-white font-[Plus Jakarta Sans]">

@@ -3,6 +3,8 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import logo2 from "../../../assets/logo2.png";
+import AutocompleteInput from "./AutocompleteInput";
+
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -44,9 +46,16 @@ export default function CreateTrip() {
     fetchUser();
   }, [token]);
 
-  const handleChange = (e) => {
-    setTrip({ ...trip, [e.target.name]: e.target.value });
-  };
+const handleChange = (e) => {
+  const { name, value, coords } = e.target;
+
+  setTrip((prev) => ({
+    ...prev,
+    [name]: value,
+    ...(coords && name === "startPoint" && { startCoords: coords }),
+    ...(coords && name === "endPoint" && { endCoords: coords }),
+  }));
+};
 
   const handleSubmit = async (e) => {
   e.preventDefault();
@@ -132,6 +141,62 @@ export default function CreateTrip() {
 }
 
   };
+const reverseGeocodeZone = async (coords) => {
+  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${coords[0]},${coords[1]}.json?types=address,neighborhood,locality,place&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  if (!data.features || data.features.length === 0) return "Unknown";
+
+  const f = data.features[0];
+
+  // 1. Intentar barrio (neighborhood)
+  const neighborhood = f.context?.find(c => c.id.includes("neighborhood"));
+  if (neighborhood) return neighborhood.text;
+
+  // 2. Intentar localidad (locality)
+  const locality = f.context?.find(c => c.id.includes("locality"));
+  if (locality) return locality.text;
+
+  // 3. Intentar dirección corta (calle)
+  if (f.place_type.includes("address")) {
+    return f.text; // Ej: "Calle 13"
+  }
+
+  // 4. Ciudad (fallback)
+  const city = f.context?.find(c => c.id.includes("place"));
+  if (city) return city.text;
+
+  return f.text || "Unknown";
+};
+
+const generateRoute = async () => {
+  let newErrors = {};
+
+  if (!trip.startCoords) {
+    newErrors.startPoint = "Selecciona un punto válido en el mapa.";
+  }
+
+  if (!trip.endCoords) {
+    newErrors.endPoint = "Selecciona un punto válido en el mapa.";
+  }
+
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(prev => ({ ...prev, ...newErrors }));
+    return;
+  }
+
+  const originZone = await reverseGeocodeZone(trip.startCoords);
+  const destZone = await reverseGeocodeZone(trip.endCoords);
+
+  const routeName = `${originZone} → ${destZone}`;
+
+  setTrip(prev => ({ ...prev, route: routeName }));
+};
+
+
+
   return (
     <div className="relative flex flex-col items-center w-full min-h-screen bg-white p-6 font-[Plus Jakarta Sans]">
       {/* Header */}
@@ -172,42 +237,34 @@ export default function CreateTrip() {
         className="bg-white mt-16 rounded-2xl shadow-lg p-8 w-full max-w-4xl space-y-6"
       >
 
-        {/* Campo: Start Point */}
-        <div>
-          <label className="block font-bold text-gray-700">Start Point</label>
-          <input
-            type="text"
-            name="startPoint"
-            value={trip.startPoint}
-            onChange={handleChange}
-            placeholder="Edificio K, Universidad de La Sabana"
-            className={`w-full p-3 mt-2 border rounded-xl bg-[#f5f0f0] placeholder-gray-400 focus:outline-none ${
-              errors.startPoint ? "border-orange-400" : "border-gray-200"
-            }`}
-          />
-            {errors.startPoint && (
-            <p className="text-orange-500 text-sm font-semibold mt-1 bg-[#f5f0f0] inline-block px-2 py-1 rounded-lg">
-              {errors.startPoint}
-            </p>
-          )}
-        </div>
+      {/* Campo: Start Point */}
+      <div>
+        <AutocompleteInput
+          label="Start Point"
+          name="startPoint"
+
+          value={trip.startPoint}
+          onChange={handleChange}
+        />
+
+        {errors.startPoint && (
+          <p className="text-orange-500 text-sm font-semibold mt-1 bg-[#f5f0f0] inline-block px-2 py-1 rounded-lg">
+            {errors.startPoint}
+          </p>
+        )}
+      </div>
+
 
 
         {/* Campo: End Point */}
         <div>
-          <label className="block font-bold text-gray-700">
-            End Point 
-          </label>
-          <input
-            type="text"
+          <AutocompleteInput
+            label="End Point"
             name="endPoint"
             value={trip.endPoint}
             onChange={handleChange}
-            placeholder="Enter your destination"
-            className={`w-full p-3 mt-2 border rounded-xl bg-[#f5f0f0] placeholder-gray-400 focus:outline-none ${
-              errors.endPoint ? "border-orange-400" : "border-gray-200"
-            }`}
           />
+
           {errors.endPoint && (
             <p className="text-orange-500 text-sm font-semibold mt-1 bg-[#f5f0f0] inline-block px-2 py-1 rounded-lg">
               {errors.endPoint}
@@ -215,27 +272,37 @@ export default function CreateTrip() {
           )}
         </div>
 
-        {/* Campo: Route */}
-        <div>
-          <label className="block font-bold text-gray-700">
-            Route 
-          </label>
-          <input
-            type="text"
-            name="route"
-            value={trip.route}
-            onChange={handleChange}
-            placeholder="Example: Via Chía - Puente del Común"
-            className={`w-full p-3 mt-2 border rounded-xl bg-[#f5f0f0] placeholder-gray-400 focus:outline-none ${
-              errors.route ? "border-orange-400" : "border-gray-200"
-            }`}
-          />
-          {errors.route && (
-            <p className="text-orange-500 text-sm font-semibold mt-1 bg-[#f5f0f0] inline-block px-2 py-1 rounded-lg">
-              {errors.route}
-            </p>
-          )}
-        </div>
+{/* Campo: Route */}
+<div>
+  <label className="block font-bold text-gray-700">Route</label>
+
+  <div className="flex gap-3">
+    <input
+      type="text"
+      name="route"
+      value={trip.route}
+      onChange={handleChange}
+      placeholder="Auto-generated based on directions"
+      className="w-full p-3 mt-2 border rounded-xl bg-[#f5f0f0]"
+      disabled
+    />
+
+    <button
+      type="button"
+      onClick={generateRoute}
+      className="bg-gray-800 text-white px-4 py-2 rounded-xl mt-2 hover:bg-gray-700"
+    >
+      Auto
+    </button>
+  </div>
+
+  {errors.route && (
+    <p className="text-orange-500 text-sm font-semibold mt-1 bg-[#f5f0f0] inline-block px-2 py-1 rounded-lg">
+      {errors.route}
+    </p>
+  )}
+</div>
+
 
         {/* Departure Time y Seats */}
         <div className="grid grid-cols-2 gap-6">
