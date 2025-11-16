@@ -93,7 +93,7 @@ const handleChange = (e) => {
   console.log("Trip being sent:", trip);
 
   try {
-  const res = await fetch(`${API_URL}/trips`, {
+  const res = await fetch(`${API_URL}/trips/search?lat=${selectedCoords.lat}&lng=${selectedCoords.lng}&radius=5`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
