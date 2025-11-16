@@ -58,43 +58,23 @@ const handleSearchClick = () => {
 
   return (
     <div className="relative w-full h-screen bg-white font-[Plus Jakarta Sans]">
-{/* Header */}
-    <header className="flex items-center gap-3 mb-2">
-      {/* Flecha de retroceso */}
-      <button
-        className="text-gray-800 text-2xl"
-        onClick={() => navigate("/passengerHome")}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={2}
-          stroke="currentColor"
-          className="w-6 h-6"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-        </svg>
-      </button>
+     <header className="sticky top-0 left-0 right-0 z-30 bg-white w-full h-16 border-b border-gray-200">
+  <div className="flex items-center justify-between h-full px-4">
+    <button
+      onClick={() => navigate("/passengerHome")}
+      className="p-2 flex items-center justify-center h-10 w-10"
+      aria-label="Back"
+    >
+      <BackIcon className="w-6 h-6 text-gray-800" />
+    </button>
 
-      {/* Título principal */}
-      <h1 className="text-4xl font-bold text-gray-900">Search a ride</h1>
+    <h1 className="text-2xl md:text-3xl font-bold text-gray-800 text-center flex-1">
+      Reservations
+    </h1>
 
-      {/* Filtro de asientos (sin cambios) */}
-      <div className="ml-auto flex items-center bg-white border border-gray-200 rounded-full px-4 py-2 shadow-sm">
-        <select
-          value={selectedSeats}
-          onChange={handleFilterChange}
-          className="bg-transparent border-none text-gray-700 font-medium outline-none"
-        >
-          <option value="">Seats left</option>
-          <option value="1">1+</option>
-          <option value="2">2+</option>
-          <option value="3">3+</option>
-          <option value="4">4+</option>
-        </select>
-      </div>
-    </header>
+    <div className="w-10 h-10" aria-hidden="true" />
+  </div>
+</header>
 
       {/* Mapa */}
       <div className="absolute top-36 left-0 w-full h-[70%]">
