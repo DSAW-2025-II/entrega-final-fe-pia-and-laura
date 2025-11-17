@@ -68,12 +68,17 @@ const SkeletonCard = () => (
   </div>
 );
 // 🔹 Aplica el filtro de asientos al listado
-const filteredOffers = selectedSeats
+const filteredOffers = (selectedSeats
   ? trips.filter((trip) => trip.seats >= parseInt(selectedSeats))
-  : trips;
+  : trips
+).filter((trip) => trip.seats > 0); // ❗ solo esto, isFull NO existe
+
 const handleBookTrip = async () => {
   if (!selectedOffer) return;
-
+  if (selectedOffer.seats === 0 ) {
+  console.error("This trip is full");
+  return;
+}
   const token = localStorage.getItem("token");
 
   if (!token) {
@@ -182,7 +187,11 @@ return (
                 exit={{ opacity: 0, y: -20 }}
                 whileHover={{ scale: 1.02 }}
                 transition={{ duration: 0.2 }}
-                onClick={() => setSelectedOffer(offer)}
+                onClick={() => {
+                if (offer.seats === 0 ) return; // ❗ Bloqueo
+                setSelectedOffer(offer);
+                }}
+
                 className={`relative flex justify-between items-center p-5 rounded-3xl cursor-pointer shadow-lg text-white ${
                   index % 3 === 0
                     ? "bg-amber-500"
@@ -214,9 +223,12 @@ return (
                 </div>
 
                 {/* Badge de asientos */}
-                <div className="absolute right-2 top-2 bg-white text-gray-900 text-xs font-bold px-2 py-1 rounded-full shadow">
-                  {offer.seats?.toString().padStart(2, "0") ?? "00"}
+                <div className={`absolute right-2 top-2 text-xs font-bold px-2 py-1 rounded-full shadow
+                  ${offer.seats === 0 ? "bg-red-600 text-white" : "bg-white text-gray-900"}
+                `}>
+                  {offer.seats === 0 ? "FULL" : offer.seats.toString().padStart(2, "0")}
                 </div>
+
               </motion.div>
             ))}
           </AnimatePresence>
@@ -270,17 +282,23 @@ return (
               </h2>
             </div>
             <button
-              className="mt-6 w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-2xl shadow-lg transition"
+              disabled={selectedOffer.seats === 0}
+              className={`mt-6 w-full font-bold py-3 rounded-2xl shadow-lg transition
+                ${selectedOffer.seats === 0
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-emerald-500 hover:bg-emerald-600 text-white"
+                }`}
               onClick={() =>
                 navigate("/confirmRide", {
-                  state: {
-                    trip: selectedOffer,
-                  }
+                  state: { trip: selectedOffer }
                 })
               }
             >
-              Take this ride
+              {selectedOffer.seats === 0
+                ? "No seats available"
+                : "Take this ride"}
             </button>
+
           </motion.div>
           
         )}
