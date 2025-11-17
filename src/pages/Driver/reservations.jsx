@@ -106,6 +106,14 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange }) 
             <span className="text-xs font-semibold opacity-90">
               To: {reservations.destination}
             </span>
+            <span
+              className={`mt-1 px-2 py-1 text-xs font-bold rounded-lg w-fit ${
+                statusStyles[reservations.status]
+              }`}
+            >
+              {reservations.status.toUpperCase()}
+            </span>
+
 
             <span className="text-2xl font-extrabold mt-1">
               {new Date(reservations.date).toLocaleTimeString([], {
@@ -191,6 +199,15 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange }) 
                     ${reservations.price}
                   </div>
                 </div>
+                <div className="mb-4">
+                  <span
+                    className={`px-3 py-1 rounded-xl text-sm font-bold ${
+                      statusStyles[reservations.status]
+                    }`}
+                  >
+                    {reservations.status.toUpperCase()}
+                  </span>
+                </div>
 
                 {/* === ACCIONES === */}
                 <div className="mt-6">
@@ -216,19 +233,30 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange }) 
                       </button>
                     </>
                   )}
+                  {isDriver && reservations.status !== "pending" && (
+                    <p className="text-center text-white text-lg font-semibold">
+                      This reservation is {reservations.status}.
+                    </p>
+                  )}
 
-                  {/* PASAJERO (ya NO puede cancelar) */}
+                  {/* PASAJERO */}
                   {isPassenger && reservations.status === "pending" && (
                     <p className="text-center text-white/90">
                       Waiting for driver response...
                     </p>
                   )}
 
-                  {!isDriver && !isPassenger && (
-                    <div className="text-white/90 text-center py-3">
-                      You are viewing this reservation
-                    </div>
-                  )}
+                    {isPassenger && reservations.status === "accepted" && (
+                      <p className="text-center text-white text-lg font-bold">
+                        🎉 Driver accepted your reservation!
+                      </p>
+                    )}
+
+                    {isPassenger && reservations.status === "declined" && (
+                      <p className="text-center text-white text-lg font-bold">
+                        ❌ Driver declined your reservation.
+                      </p>
+                    )}
                 </div>
               </div>
             </div>
