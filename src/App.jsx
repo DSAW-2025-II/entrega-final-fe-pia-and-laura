@@ -9,7 +9,7 @@ import DriverHome from "./pages/Home/driverHome.jsx";
 import PassengerHome from "./pages/Home/passengerHome.jsx";
 import UserProfile from "./pages/UserProfile.jsx";
 import CarSignIn from "./pages/SignIn/CarSignIn.jsx";
-import reservationsPage from "./pages/Driver/reservations.jsx";
+import ReservationsPage from "./pages/Driver/reservations.jsx";
 import Settings from "./pages/Driver/settings.jsx";
 import CarSettings from "./pages/Driver/carSettings.jsx";
 import CreateTrip from "./pages/Driver/createTrip.jsx";
@@ -29,7 +29,7 @@ function App() {
         <Route path="/driverHome" element={<ProtectedRoute allowedRoles={["driver"]}><DriverHome /></ProtectedRoute>} />
         <Route path="/passengerHome" element={<ProtectedRoute><PassengerHome /></ProtectedRoute>} />
         <Route path="/userProfile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
-        <Route path="/reservations" element={<ProtectedRoute ><reservationsPage /></ProtectedRoute>} />
+        <Route path="/reservations" element={<ProtectedRoute ><ReservationsPage /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/carSettings" element={<ProtectedRoute allowedRoles={["driver"]}><CarSettings /></ProtectedRoute>} />
         <Route path="/createTrip" element={<ProtectedRoute allowedRoles={["driver"]}><CreateTrip /></ProtectedRoute>} />
