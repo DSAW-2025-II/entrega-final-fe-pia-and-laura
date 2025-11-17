@@ -337,7 +337,7 @@ export default function ReservationsPage() {
 };
   const onPassengerCancel = async (id) => {
     try {
-      await fetch(`${API_URL}/reservations/${reservation._id}/cancel`, {
+        await fetch(`${API_URL}/reservations/${id}/cancel`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
