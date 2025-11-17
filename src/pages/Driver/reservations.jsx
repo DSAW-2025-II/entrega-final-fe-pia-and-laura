@@ -244,22 +244,29 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange, ge
 </div>
 {/* === RESERVATION NOTES === */}
 {reservations.note && reservations.note.trim() !== "" && (
-  <div className="mt-4 p-3 bg-white/20 rounded-xl text-sm">
-    <span className="font-semibold">Notes:</span>
-    <p className="mt-1">{reservations.note}</p>
-  </div>
-  
-)}
 <div className="mt-4 p-3 bg-white/20 rounded-xl text-sm">
   <span className="font-semibold">Notes:</span>
   <p className="mt-1">{reservations.note || "No notes added"}</p>
 </div>
+  
+)}
 
+{/* === PICKUP POINTS === */}
+{Array.isArray(reservations.pickupPoints) && reservations.pickupPoints.length > 0 && (
+  <div className="mt-4 p-3 bg-white/20 rounded-xl text-sm max-h-32 overflow-y-auto">
+    <span className="font-semibold block mb-2">Pickup Points:</span>
 
-
-
-
-
+    {reservations.pickupPoints.map((point, index) => (
+      <div
+        key={index}
+        className="mb-2 p-2 bg-white/10 rounded-lg border border-white/20"
+      >
+        <span className="font-semibold">#{index + 1}:</span>{" "}
+        <span>{point}</span>
+      </div>
+    ))}
+  </div>
+)}
           {/* Precio destacado */}
           <motion.p
             initial={{ scale: 0.8 }}

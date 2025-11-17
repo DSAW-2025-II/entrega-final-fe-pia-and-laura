@@ -361,7 +361,7 @@ const payload = {
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Indica dónde recogerme"
+              placeholder="Leave a note for the driver (optional)"
               className="w-full mt-2 p-3 border rounded-lg resize-none"
               rows={3}
             />
