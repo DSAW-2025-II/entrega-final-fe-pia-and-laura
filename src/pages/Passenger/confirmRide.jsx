@@ -21,6 +21,8 @@ export default function ConfirmRide() {
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [pickupPoints, setPickupPoints] = useState([""]);
+
 
   if (!state || !state.trip) {
     return (
@@ -146,8 +148,32 @@ useEffect(() => {
   fetchUser();
 }, [token]);
 
-  const decrease = () => setSeats((s) => Math.max(1, s - 1));
-  const increase = () => setSeats((s) => Math.min(maxAvailable, s + 1));
+const increase = () => {
+  console.log("Trip seats received:", trip.seats);
+  setSeats((s) => {
+    const newSeats = Math.min(maxAvailable, s + 1);
+
+    // 👉 Ajusta la cantidad de inputs
+    setPickupPoints((prev) => {
+      const updated = [...prev];
+      while (updated.length < newSeats) updated.push("");
+      return updated;
+    });
+
+    return newSeats;
+  });
+};
+
+const decrease = () => {
+  setSeats((s) => {
+    const newSeats = Math.max(1, s - 1);
+
+    // 👉 Recorta los inputs de recogida
+    setPickupPoints((prev) => prev.slice(0, newSeats));
+
+    return newSeats;
+  });
+};
 
   const priceTotal = (trip.price || 0) * seats;
 
@@ -159,18 +185,24 @@ useEffect(() => {
     navigate("/login");
     return;
   }
+    if (pickupPoints.some(p => p.trim() === "")) {
+  setErrorMsg("You must specify all pickup points.");
+  setLoading(false);
+  return;
+}
+const payload = {
+  trip: trip._id,
+  passenger: fullUser?._id,
+  driver: trip.driver?._id || trip.driverId,
+  seats,
+  note,
+  pickupPoints,   // 👉 NUEVO
+  origin: trip.startPoint,
+  destination: trip.endPoint,
+  date: trip.departureTime,
+  price: trip.price
+};
 
-  const payload = {
-    trip: trip._id,
-    passenger: fullUser?._id,
-    driver: trip.driver?._id || trip.driverId,
-    seats,
-    note,
-    origin: trip.startPoint,
-    destination: trip.endPoint,
-    date: trip.departureTime,
-    price: trip.price
-  };
 
   console.log("📤 ENVIANDO RESERVA AL BACKEND:", payload);
 
@@ -334,6 +366,34 @@ useEffect(() => {
               rows={3}
             />
           </div>
+          {/* Pickup Points */}
+          <div className="mt-6">
+  <label className="text-sm font-medium text-gray-700">
+    Pickup points (required)
+  </label>
+
+  <div className="space-y-3 mt-3">
+    {pickupPoints.map((point, index) => (
+      <div key={index}>
+        <label className="text-xs text-gray-500">
+          Pickup point {index + 1}
+        </label>
+        <input
+          type="text"
+          value={point}
+          onChange={(e) => {
+            const newPoints = [...pickupPoints];
+            newPoints[index] = e.target.value;
+            setPickupPoints(newPoints);
+          }}
+          className="w-full p-3 border rounded-lg"
+          placeholder={`Specify pickup point ${index + 1}`}
+        />
+      </div>
+    ))}
+  </div>
+</div>
+
 
           {/* Book section */}
           <div className="mt-8 flex items-center justify-between">

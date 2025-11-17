@@ -86,6 +86,7 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange, ge
   const [open, setOpen] = useState(false);
   console.log("🔍 RESERVATION OBJECT:", reservations);
   console.log("🧾 ID en la card:", getId(reservations));
+  console.log("RESERVATION FULL DATA 👉", reservations);
   const currentId = currentUser?._id || currentUser?.id || null;
   const driverId = reservations?.driver?._id || reservations?.driver?.id || null;
   const passengerId = reservations?.passenger?._id || reservations?.passenger?.id || null;
@@ -241,6 +242,21 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange, ge
   </p>
 
 </div>
+{/* === RESERVATION NOTES === */}
+{reservations.note && reservations.note.trim() !== "" && (
+  <div className="mt-4 p-3 bg-white/20 rounded-xl text-sm">
+    <span className="font-semibold">Notes:</span>
+    <p className="mt-1">{reservations.note}</p>
+  </div>
+  
+)}
+<div className="mt-4 p-3 bg-white/20 rounded-xl text-sm">
+  <span className="font-semibold">Notes:</span>
+  <p className="mt-1">{reservations.note || "No notes added"}</p>
+</div>
+
+
+
 
 
 
