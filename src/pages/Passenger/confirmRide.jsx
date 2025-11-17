@@ -175,7 +175,7 @@ useEffect(() => {
   console.log("📤 ENVIANDO RESERVA AL BACKEND:", payload);
 
   try {
-    const res = await fetch(`${API_URL}/reservations`, {
+    const res = await fetch(`${API_URL}/reservationss`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -188,14 +188,14 @@ useEffect(() => {
     console.log("📥 RESPUESTA DEL BACKEND:", data);
 
     if (!res.ok) {
-      setErrorMsg(data.message || "Error creating reservation");
+      setErrorMsg(data.message || "Error creating reservations");
       return;
     }
 
-    navigate("/reservations");
+    navigate("/reservationss");
   } catch (err) {
     console.error("❌ ERROR FETCH:", err);
-    setErrorMsg("Error creating reservation");
+    setErrorMsg("Error creating reservations");
   } finally {
     setLoading(false);
   }

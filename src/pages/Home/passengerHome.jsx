@@ -6,7 +6,7 @@ import calendarBenefits from "../../../assets/calendarBenefits.png";
 import clockBenefits from "../../../assets/clockBenefits.png";
 import cardBenefits from "../../../assets/cardBenefits.png";
 import homeCar from "../../../assets/homeCar.png";
-import reservations from "../../../assets/reservations.png";
+import reservationss from "../../../assets/reservationss.png";
 
 
 export default function HomePassenger() {
@@ -103,7 +103,7 @@ export default function HomePassenger() {
 
   const handleActivityClick = () => {
     setActive("activity");
-    navigate("/reservations");
+    navigate("/reservationss");
   };
 
   const HomeIcon = (filled) => (
@@ -197,7 +197,7 @@ export default function HomePassenger() {
           {/* Left: Icons */}
           <div className="flex flex-row md:flex-col justify-center items-center gap-3 md:gap-5 w-full md:w-[30%]">
             <button
-            onClick={() => navigate("/reservations")} // 👈 Navega a la página de reservas
+            onClick={() => navigate("/reservationss")} // 👈 Navega a la página de reservas
                 className="flex-shrink-0 flex flex-col items-center bg-gray-100 rounded-xl p-3 w-28 md:w-full max-w-[280px] md:max-w-none h-28 md:h-auto justify-center hover:bg-gray-200 transition"
             >
                 <img
@@ -213,8 +213,8 @@ export default function HomePassenger() {
               className="flex-shrink-0 flex flex-col items-center bg-gray-100 rounded-xl p-3 w-28 md:w-full max-w-[280px] md:max-w-none h-28 md:h-auto justify-center hover:bg-gray-200 transition"
             >
               <img
-                src={reservations}
-                alt="Reservations"
+                src={reservationss}
+                alt="reservationss"
                 className="w-24 md:w-40 h-auto object-contain"
               />
               <p className="mt-2 font-semibold text-sm md:text-base text-center">

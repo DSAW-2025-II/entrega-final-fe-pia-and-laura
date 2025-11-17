@@ -75,13 +75,13 @@ const AccountIcon = (filled) => (
 
 
 /* ==== CARD COMPONENT ==== */
-export function ReservationCard({ reservation, currentUser, onStatusChange, onPassengerCancel }) {
+export function reservationsCard({ reservationss, currentUser, onStatusChange, onPassengerCancel }) {
   const [open, setOpen] = useState(false);
   
   // Gestionar comparaciones de id (asegúrate de que currentUser tenga _id o id)
   const currentId = currentUser?._id || currentUser?.id || null;
-  const driverId = reservation?.driver?._id || reservation?.driver?.id || null;
-  const passengerId = reservation?.passenger?._id || reservation?.passenger?.id || null;
+  const driverId = reservationss?.driver?._id || reservationss?.driver?.id || null;
+  const passengerId = reservationss?.passenger?._id || reservationss?.passenger?.id || null;
 
   const isDriver = currentId && driverId && String(currentId) === String(driverId);
   const isPassenger = currentId && passengerId && String(currentId) === String(passengerId);
@@ -94,11 +94,11 @@ export function ReservationCard({ reservation, currentUser, onStatusChange, onPa
 
   // Colores por estado (para badge de la izquierda)
   const badgeColor =
-    reservation.status === "pending"
+    reservationss.status === "pending"
       ? "bg-amber-100 text-amber-700"
-      : reservation.status === "confirmed"
+      : reservationss.status === "confirmed"
       ? "bg-emerald-100 text-emerald-700"
-      : reservation.status === "cancelled"
+      : reservationss.status === "cancelled"
       ? "bg-red-100 text-red-700"
       : "bg-slate-100 text-slate-700";
 
@@ -115,11 +115,11 @@ export function ReservationCard({ reservation, currentUser, onStatusChange, onPa
     {/* LEFT SIDE */}
     <div className="flex flex-col text-white w-[60%]">
       <span className="text-xs font-semibold opacity-90">
-        To: {reservation.destination}
+        To: {reservationss.destination}
       </span>
 
       <span className="text-2xl font-extrabold mt-1">
-        {new Date(reservation.date).toLocaleTimeString([], {
+        {new Date(reservationss.date).toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
         })}
@@ -136,11 +136,11 @@ export function ReservationCard({ reservation, currentUser, onStatusChange, onPa
     {/* RIGHT SIDE */}
     <div className="flex flex-col text-right text-white">
       <span className="text-sm font-semibold">
-        Passenger: {reservation?.passenger?.name || "Passenger"}
+        Passenger: {reservationss?.passenger?.name || "Passenger"}
       </span>
 
       <span className="text-lg font-extrabold mt-1">
-        ${reservation.price}
+        ${reservationss.price}
       </span>
     </div>
   </div>
@@ -184,31 +184,31 @@ export function ReservationCard({ reservation, currentUser, onStatusChange, onPa
                   </div>
 
                   <ul className="list-inside list-disc ml-2 space-y-2 mb-6">
-                    <li className="text-lg font-semibold">To: {reservation.destination}</li>
+                    <li className="text-lg font-semibold">To: {reservations.destination}</li>
                     {/* Mostrar conductor si NO eres el conductor dueño */}
                     {!isDriver && (
-                      <li className="text-base">Driver: <span className="font-medium">{reservation.driver?.name || "Unknown"}</span></li>
+                      <li className="text-base">Driver: <span className="font-medium">{reservations.driver?.name || "Unknown"}</span></li>
                     )}
-                    <li className="text-sm opacity-90">{new Date(reservation.date).toLocaleString()}</li>
+                    <li className="text-sm opacity-90">{new Date(reservations.date).toLocaleString()}</li>
                   </ul>
 
-                  <div className="mt-6 text-5xl font-extrabold">${reservation.price}</div>
+                  <div className="mt-6 text-5xl font-extrabold">${reservations.price}</div>
                 </div>
 
                 {/* Botones de acción */}
                 <div className="mt-6">
                   {/* Si eres conductor y la reserva está pendiente -> mostrar Accept/Decline (verde y naranja) */}
-                  {isDriver && reservation.status === "pending" && (
+                  {isDriver && reservations.status === "pending" && (
                     <>
                       <button
-                        onClick={() => onStatusChange(reservation._id || reservation.id, "confirmed")}
+                        onClick={() => onStatusChange(reservations._id || reservations.id, "confirmed")}
                         className="w-full px-6 py-3 rounded-xl bg-emerald-400 text-white font-semibold mb-3 shadow"
                       >
                         Accept
                       </button>
 
                       <button
-                        onClick={() => onPassengerCancel(reservation._id || reservation.id)}
+                        onClick={() => onPassengerCancel(reservations._id || reservations.id)}
                         className="w-full px-6 py-3 rounded-xl bg-orange-400 text-white font-semibold"
                       >
                         Decline
@@ -217,19 +217,19 @@ export function ReservationCard({ reservation, currentUser, onStatusChange, onPa
                   )}
 
                   {/* Si eres pasajero y aún está pendiente -> cancelar */}
-                  {isPassenger && reservation.status === "pending" && (
+                  {isPassenger && reservations.status === "pending" && (
                     <button
-                      onClick={() => onPassengerCancel(reservation._id || reservation.id)}
+                      onClick={() => onPassengerCancel(reservations._id || reservations.id)}
                       className="w-full px-6 py-3 rounded-xl bg-orange-400 text-white font-semibold"
                     >
-                      Cancel Reservation
+                      Cancel reservations
                     </button>
                   )}
 
 
                   {/* Si ni eres conductor ni pasajero -> solo vista (o botón de info) */}
                   {!isDriver && !isPassenger && (
-                    <div className="text-white/90 text-center py-3">You are viewing this reservation</div>
+                    <div className="text-white/90 text-center py-3">You are viewing this reservations</div>
                   )}
                 </div>
               </div>
@@ -244,9 +244,9 @@ export function ReservationCard({ reservation, currentUser, onStatusChange, onPa
 
 
 /* ==== MAIN PAGE ==== */
-export default function ReservationsPage() {
+export default function reservationssPage() {
   const [active, setActive] = useState("activity");
-  const [reservations, setReservations] = useState([]);
+  const [reservationss, setreservationss] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -255,12 +255,12 @@ export default function ReservationsPage() {
   useEffect(() => {
     if (!user?.id && !user?._id) return;
 
-    const fetchReservations = async () => {
+    const fetchreservationss = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const res = await fetch(`${API_URL}/reservations/${user.id || user._id}`, {
+        const res = await fetch(`${API_URL}/reservationss/${user.id || user._id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -270,28 +270,28 @@ export default function ReservationsPage() {
         const data = await res.json();
         console.log("📦 Respuesta del backend:", data);
 
-        if (!res.ok) throw new Error(data.message || "Error fetching reservations");
+        if (!res.ok) throw new Error(data.message || "Error fetching reservationss");
 
         // Asegurar que siempre sea un array
         if (Array.isArray(data)) {
-          setReservations(data);
+          setreservationss(data);
         } else if (data.today || data.tomorrow) {
-          setReservations({
+          setreservationss({
             today: data.today || [],
             tomorrow: data.tomorrow || []
           });
         } else {
-          setReservations([]);
+          setreservationss([]);
         }
       } catch (error) {
-        console.error("Error fetching reservations:", error);
-        setError("Error fetching reservations");
+        console.error("Error fetching reservationss:", error);
+        setError("Error fetching reservationss");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchReservations();
+    fetchreservationss();
   }, [user, token]);
 
   /* ==== NAVIGATION ==== */
@@ -307,13 +307,13 @@ export default function ReservationsPage() {
 
   const handleActivityClick = () => {
     setActive("activity");
-    navigate("/reservations");
+    navigate("/reservationss");
   };
 
   const handleBackClick = () => navigate(-1);
   const handleStatusChange = async (id, newStatus) => {
   try {
-    await fetch(`${API_URL}/reservations/status/${id}`, {
+    await fetch(`${API_URL}/reservationss/status/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -323,7 +323,7 @@ export default function ReservationsPage() {
     });
 
     // Refrescar lista después de cambiar estado
-    setReservations(prev =>
+    setreservationss(prev =>
       ({
         today: prev.today.map(r => r._id === id ? { ...r, status: newStatus } : r),
         tomorrow: prev.tomorrow.map(r => r._id === id ? { ...r, status: newStatus } : r),
@@ -337,7 +337,7 @@ export default function ReservationsPage() {
 };
   const onPassengerCancel = async (id) => {
     try {
-      await fetch(`${API_URL}/reservations/${id}/cancel`, {
+      await fetch(`${API_URL}/reservationss/${id}/cancel`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -346,12 +346,12 @@ export default function ReservationsPage() {
       });
 
       // actualizar UI
-    setReservations(prev => ({
+    setreservationss(prev => ({
         today: prev.today.map(r => r._id === id ? { ...r, status: "cancelled" } : r),
         tomorrow: prev.tomorrow.map(r => r._id === id ? { ...r, status: "cancelled" } : r),
       }));
     } catch (err) {
-      console.error("Error cancelling reservation:", err);
+      console.error("Error cancelling reservations:", err);
     }
   };
 
@@ -371,7 +371,7 @@ export default function ReservationsPage() {
     </button>
 
     <h1 className="text-2xl md:text-3xl font-bold text-gray-800 text-center flex-1">
-      Reservations
+      reservationss
     </h1>
 
     <div className="w-10 h-10" aria-hidden="true" />
@@ -384,18 +384,18 @@ export default function ReservationsPage() {
   {error ? (
     <p className="text-red-500 text-center">{error}</p>
   ) : loading ? (
-    <p className="text-gray-500 text-center">Loading reservations...</p>
-  ) : reservations.today || reservations.tomorrow ? (
+    <p className="text-gray-500 text-center">Loading reservationss...</p>
+  ) : reservationss.today || reservationss.tomorrow ? (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {/* TODAY COLUMN */}
       <div>
         <h2 className="text-xl font-semibold text-gray-800 mb-4">Today</h2>
-        {reservations.today && reservations.today.length > 0 ? (
+        {reservationss.today && reservationss.today.length > 0 ? (
           <div className="flex flex-col gap-4 items-center">
-            {reservations.today.map((res) => (
-        <ReservationCard
+            {reservationss.today.map((res) => (
+        <reservationsCard
           key={res._id || res.id}
-          reservation={res}
+          reservations={res}
           currentUser={user}
           onStatusChange={handleStatusChange}
           onPassengerCancel={onPassengerCancel}
@@ -412,12 +412,12 @@ export default function ReservationsPage() {
       {/* TOMORROW COLUMN */}
       <div>
         <h2 className="text-xl font-semibold text-gray-800 mb-4">Tomorrow</h2>
-        {reservations.tomorrow && reservations.tomorrow.length > 0 ? (
+        {reservationss.tomorrow && reservationss.tomorrow.length > 0 ? (
           <div className="flex flex-col gap-4 items-center">
-            {reservations.tomorrow.map((res) => (
-          <ReservationCard
+            {reservationss.tomorrow.map((res) => (
+          <reservationsCard
             key={res._id || res.id}
-            reservation={res}
+            reservations={res}
             currentUser={user}
             onStatusChange={handleStatusChange}
             onPassengerCancel={onPassengerCancel}
@@ -431,7 +431,7 @@ export default function ReservationsPage() {
       </div>
     </div>
   ) : (
-    <p className="text-gray-500 text-center">No reservations found.</p>
+    <p className="text-gray-500 text-center">No reservationss found.</p>
   )}
 </main>
 

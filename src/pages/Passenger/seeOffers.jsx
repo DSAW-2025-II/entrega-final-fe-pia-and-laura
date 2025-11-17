@@ -10,7 +10,7 @@ export default function SeeOffers() {
     const [loading, setLoading] = useState(true);
     const [selectedSeats, setSelectedSeats] = useState("");
     const [selectedOffer, setSelectedOffer] = useState(null);
-    const [reservationNotification, setReservationNotification] = useState(false);
+    const [reservationsNotification, setreservationsNotification] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 const params = new URLSearchParams(location.search);
@@ -88,7 +88,7 @@ const handleBookTrip = async () => {
   }
 
   try {
-    const res = await fetch(`${API_URL}/reservations`, {
+    const res = await fetch(`${API_URL}/reservationss`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -104,15 +104,15 @@ const handleBookTrip = async () => {
     console.log("Reserva creada:", data);
 
     if (!res.ok) {
-      alert(data.message || "Error creating reservation");
+      alert(data.message || "Error creating reservations");
       return;
     }
 
-    console.log("Reservation created successfully!");
-    navigate("/myReservations");
+    console.log("reservations created successfully!");
+    navigate("/myreservationss");
   } catch (error) {
-    console.error("Error creating reservation:", error);
-    console.error("Error creating reservation");
+    console.error("Error creating reservations:", error);
+    console.error("Error creating reservations");
   }
 };
 
@@ -305,7 +305,7 @@ return (
       </AnimatePresence>
     </div>
     <AnimatePresence>
-  {reservationNotification && (
+  {reservationsNotification && (
     <motion.div
       initial={{ opacity: 0, y: -30 }}
       animate={{ opacity: 1, y: 0 }}
@@ -316,7 +316,7 @@ return (
         <h3 className="text-xl font-bold text-gray-900">
           Your ride is booked
         </h3>
-        <button onClick={() => setReservationNotification(false)}>
+        <button onClick={() => setreservationsNotification(false)}>
           <X size={18} />
         </button>
       </div>
