@@ -175,7 +175,7 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange, ge
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="p-8 text-white h-full flex flex-col justify-between"
+        className="p-8 text-white h-full flex flex-col justify-between overflow-y-auto"
       >
 
         {/* TOP INFO */}
@@ -240,13 +240,14 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange, ge
   </p>
 
 </div>
-{/* === RESERVATION NOTES === */}
-{reservations.note && reservations.note.trim() !== "" && (
-<div className="mt-4 p-3 bg-white/20 rounded-xl text-sm">
-  <span className="font-semibold">Notes:</span>
-  <p className="mt-1">{reservations.note || "No notes added"}</p>
-</div>
-  
+{/* === RESERVATION NOTES === */}  
+{reservations.note !== undefined && (
+  <div className="mt-4 p-3 bg-white/20 rounded-xl text-sm">
+    <span className="font-semibold">Notes:</span>
+    <p className="mt-1">
+      {reservations.note?.trim() !== "" ? reservations.note : "No notes added"}
+    </p>
+  </div>
 )}
 
 {/* === PICKUP POINTS (CHIPS STYLE) === */}
