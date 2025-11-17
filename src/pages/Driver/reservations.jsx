@@ -73,6 +73,26 @@ const AccountIcon = (filled) => (
   </svg>
 );
 
+const onPassengerCancel = async (id) => {
+  try {
+    await fetch(`${API_URL}/reservations/${id}/cancel`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      }
+    });
+
+    // actualizar UI
+    setReservations(prev => ({
+      today: prev.today.map(r => r._id === id ? { ...r, status: "cancelled" } : r),
+      tomorrow: prev.tomorrow.map(r => r._id === id ? { ...r, status: "cancelled" } : r),
+    }));
+  } catch (err) {
+    console.error("Error cancelling reservation:", err);
+  }
+};
+
 /* ==== CARD COMPONENT ==== */
 export function ReservationCard({ reservation, currentUser, onStatusChange }) {
   const [open, setOpen] = useState(false);
@@ -207,7 +227,7 @@ export function ReservationCard({ reservation, currentUser, onStatusChange }) {
                       </button>
 
                       <button
-                        onClick={() => onStatusChange(reservation._id || reservation.id, "cancelled")}
+                        onClick={() => onPassengerCancel(reservation._id || reservation.id)}
                         className="w-full px-6 py-3 rounded-xl bg-orange-400 text-white font-semibold"
                       >
                         Decline
@@ -218,12 +238,13 @@ export function ReservationCard({ reservation, currentUser, onStatusChange }) {
                   {/* Si eres pasajero y aún está pendiente -> cancelar */}
                   {isPassenger && reservation.status === "pending" && (
                     <button
-                      onClick={() => onStatusChange(reservation._id || reservation.id, "cancelled")}
+                      onClick={() => onPassengerCancel(reservation._id || reservation.id)}
                       className="w-full px-6 py-3 rounded-xl bg-orange-400 text-white font-semibold"
                     >
                       Cancel Reservation
                     </button>
                   )}
+
 
                   {/* Si ni eres conductor ni pasajero -> solo vista (o botón de info) */}
                   {!isDriver && !isPassenger && (
