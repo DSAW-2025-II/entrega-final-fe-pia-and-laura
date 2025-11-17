@@ -102,173 +102,176 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange }) 
   return (
     <>
       {/* === TARJETA MINI === */}
-      <div
-        onClick={handleOpen}
-        className="w-full max-w-[750px] rounded-3xl cursor-pointer shadow-md transition hover:scale-[1.01]"
-        style={{ background: "#1F2739" }}
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  whileHover={{ scale: 1.01 }}
+  transition={{ duration: 0.25 }}
+  onClick={handleOpen}
+  className="w-full max-w-[750px] rounded-3xl shadow-md cursor-pointer"
+  style={{ background: "#1F2739" }}
+>
+  <div className="flex items-center justify-between px-6 py-4 w-full text-white">
+    
+    {/* Left */}
+    <div className="flex flex-col w-[55%]">
+      <span className="text-xs font-medium opacity-80">
+        To: {reservations.destination}
+      </span>
+
+      <motion.span
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className={`mt-2 px-3 py-1 text-[10px] font-bold rounded-full ${statusStyles[reservations.status]}`}
       >
-        <div className="flex items-center justify-between w-full px-6 py-4">
-          <div className="flex flex-col text-white w-[60%]">
-            <span className="text-xs font-semibold opacity-90">
-              To: {reservations.destination}
-            </span>
-            <span
-              className={`mt-1 px-2 py-1 text-xs font-bold rounded-lg w-fit ${
-                statusStyles[reservations.status]
-              }`}
-            >
-              {reservations.status.toUpperCase()}
-            </span>
+        {reservations.status.toUpperCase()}
+      </motion.span>
 
+      <span className="mt-2 text-2xl font-extrabold">
+        {new Date(reservations.date).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </span>
+    </div>
 
-            <span className="text-2xl font-extrabold mt-1">
-              {new Date(reservations.date).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-center">
-            <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
-              <WalletIcon className="w-6 h-6" />
-            </div>
-          </div>
-
-          <div className="flex flex-col text-right text-white">
-            <span className="text-sm font-semibold">
-              Passenger: {reservations?.passenger?.name || "Passenger"}
-            </span>
-
-            <span className="text-lg font-extrabold mt-1">${reservations.price}</span>
-          </div>
-        </div>
+    {/* Icon */}
+    <div className="flex items-center justify-center">
+      <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
+        <WalletIcon className="w-6 h-6" />
       </div>
+    </div>
 
-      {/* === OVERLAY === */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            className="fixed inset-0 bg-black/50 z-40"
-            onClick={handleClose}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          />
-        )}
-      </AnimatePresence>
+    {/* Right */}
+    <div className="flex flex-col text-right">
+      <span className="text-sm font-semibold">
+        {isDriver ? `Passenger: ${reservations?.passenger?.name}` : `Driver: ${reservations?.driver?.name}`}
+      </span>
 
-      {/* === PANEL === */}
-      <AnimatePresence>
-        {open && (
-          <motion.aside
-            className="fixed top-0 right-0 z-50 h-full w-[420px] p-6"
-            initial={{ x: 420 }}
-            animate={{ x: 0 }}
-            exit={{ x: 420 }}
-            transition={{ type: "spring", stiffness: 260, damping: 30 }}
+      <span className="mt-1 text-xl font-extrabold">
+        ${reservations.price}
+      </span>
+    </div>
+  </div>
+</motion.div>
+
+{/* === PANEL LATERAL === */}
+<AnimatePresence>
+{open && (
+  <motion.aside
+    className="fixed top-0 right-0 z-50 h-full w-[420px] p-6"
+    initial={{ x: 420 }}
+    animate={{ x: 0 }}
+    exit={{ x: 420 }}
+    transition={{ type: "spring", stiffness: 250, damping: 28 }}
+  >
+    <div className="relative h-full rounded-2xl overflow-hidden shadow-xl bg-emerald-500">
+      
+      {/* Close */}
+      <button onClick={handleClose} className="absolute right-4 top-4 p-2">
+        <CloseIcon />
+      </button>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-8 text-white h-full flex flex-col justify-between"
+      >
+
+        {/* TOP INFO */}
+        <div>
+          {/* Badge arriba */}
+          <span
+            className={`px-3 py-1 rounded-xl text-sm font-bold ${statusStyles[reservations.status]}`}
           >
-            <div
-              className="relative h-full rounded-2xl overflow-hidden shadow-xl"
-              style={{ background: "#10B981" }}
-            >
-              <button onClick={handleClose} className="absolute right-4 top-4 p-2">
-                <CloseIcon />
-              </button>
+            {reservations.status.toUpperCase()}
+          </span>
 
-              <div className="p-8 text-white h-full flex flex-col justify-between">
-                <div>
-                  <div className="mb-4 w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                    <WalletIcon className="w-5 h-5 text-white" />
-                  </div>
+          {/* Destino y hora */}
+          <h2 className="mt-5 text-2xl font-bold">
+            To: {reservations.destination}
+          </h2>
+          <p className="opacity-90 mt-1">
+            {new Date(reservations.date).toLocaleString()}
+          </p>
 
-                  <ul className="list-inside list-disc ml-2 space-y-2 mb-6">
-                    <li className="text-lg font-semibold">
-                      To: {reservations.destination}
-                    </li>
+          {/* Info agrupada */}
+          <div className="mt-6 space-y-2 text-sm">
+            {!isDriver && (
+              <p>Driver: <span className="font-semibold">{reservations.driver?.name}</span></p>
+            )}
+            {!isPassenger && (
+              <p>Passenger: <span className="font-semibold">{reservations.passenger?.name}</span></p>
+            )}
+          </div>
 
-                    {!isDriver && (
-                      <li className="text-base">
-                        Driver:{" "}
-                        <span className="font-medium">
-                          {reservations.driver?.name || "Unknown"}
-                        </span>
-                      </li>
-                    )}
+          {/* Precio destacado */}
+          <motion.p
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            className="mt-8 text-5xl font-extrabold"
+          >
+            ${reservations.price}
+          </motion.p>
+        </div>
 
-                    <li className="text-sm opacity-90">
-                      {new Date(reservations.date).toLocaleString()}
-                    </li>
-                  </ul>
+        {/* ACCIONES */}
+        <div className="mt-8">
+          
+          {/* DRIVER ACTIONS */}
+          {isDriver && reservations.status === "pending" && (
+            <>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.03 }}
+                onClick={() => onStatusChange(reservations._id || reservations.id, "accepted")}
+                className="w-full px-6 py-3 rounded-xl bg-white text-emerald-600 font-semibold mb-3 shadow"
+              >
+                Accept
+              </motion.button>
 
-                  <div className="mt-6 text-5xl font-extrabold">
-                    ${reservations.price}
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <span
-                    className={`px-3 py-1 rounded-xl text-sm font-bold ${
-                      statusStyles[reservations.status]
-                    }`}
-                  >
-                    {reservations.status.toUpperCase()}
-                  </span>
-                </div>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.03 }}
+                onClick={() => onStatusChange(reservations._id || reservations.id, "declined")}
+                className="w-full px-6 py-3 rounded-xl bg-orange-400 font-semibold text-white shadow"
+              >
+                Decline
+              </motion.button>
+            </>
+          )}
 
-                {/* === ACCIONES === */}
-                <div className="mt-6">
-                  {/* SOLO CONDUCTOR + estado pendiente */}
-                  {isDriver && reservations.status === "pending" && (
-                    <>
-                      <button
-                        onClick={() =>
-                          onStatusChange(reservations._id || reservations.id, "accepted")
-                        }
-                        className="w-full px-6 py-3 rounded-xl bg-emerald-400 text-white font-semibold mb-3 shadow"
-                      >
-                        Accept
-                      </button>
+          {/* Passenger messages */}
+          {isPassenger && reservations.status === "pending" && (
+            <p className="text-center text-white/90 text-lg">
+              Waiting for driver response...
+            </p>
+          )}
 
-                      <button
-                        onClick={() =>
-                          onStatusChange(reservations._id || reservations.id, "declined")
-                        }
-                        className="w-full px-6 py-3 rounded-xl bg-orange-400 text-white font-semibold"
-                      >
-                        Decline
-                      </button>
-                    </>
-                  )}
-                  {isDriver && reservations.status !== "pending" && (
-                    <p className="text-center text-white text-lg font-semibold">
-                      This reservation is {reservations.status}.
-                    </p>
-                  )}
+          {isPassenger && reservations.status === "accepted" && (
+            <p className="text-center text-white text-lg font-bold">
+              🎉 Driver accepted your reservation!
+            </p>
+          )}
 
-                  {/* PASAJERO */}
-                  {isPassenger && reservations.status === "pending" && (
-                    <p className="text-center text-white/90">
-                      Waiting for driver response...
-                    </p>
-                  )}
+          {isPassenger && reservations.status === "declined" && (
+            <p className="text-center text-white text-lg font-bold">
+              ❌ Driver declined your reservation.
+            </p>
+          )}
 
-                    {isPassenger && reservations.status === "accepted" && (
-                      <p className="text-center text-white text-lg font-bold">
-                        🎉 Driver accepted your reservation!
-                      </p>
-                    )}
-
-                    {isPassenger && reservations.status === "declined" && (
-                      <p className="text-center text-white text-lg font-bold">
-                        ❌ Driver declined your reservation.
-                      </p>
-                    )}
-                </div>
-              </div>
-            </div>
-          </motion.aside>
-        )}
-      </AnimatePresence>
+          {/* Confirmed message for driver */}
+          {isDriver && reservations.status !== "pending" && (
+            <p className="text-center text-white text-lg font-semibold">
+              This reservation is {reservations.status}.
+            </p>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  </motion.aside>
+)}
+</AnimatePresence>
     </>
   );
 }
