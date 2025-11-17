@@ -101,7 +101,6 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange, on
       : reservations.status === "cancelled"
       ? "bg-red-100 text-red-700"
       : "bg-slate-100 text-slate-700";
-console.log("🟥 ID usado para cancelar:", reservations._id);
 
   return (
     <>
@@ -336,6 +335,10 @@ export default function ReservationsPage() {
   }
   
 };
+console.log("🟥 ID usado para cancelar reservations._id:", reservations._id);
+console.log("🟥 ID usado para cancelar r._id:", r._id);
+console.log("🟥 ID usado para cancelarres._id:", res._id);
+
   const onPassengerCancel = async (id) => {
     try {
         await fetch(`${API_URL}/reservations/${id}/cancel`, {
