@@ -101,6 +101,7 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange, on
       : reservations.status === "cancelled"
       ? "bg-red-100 text-red-700"
       : "bg-slate-100 text-slate-700";
+console.log("🟥 ID usado para cancelar:", reservations._id);
 
   return (
     <>
@@ -208,7 +209,7 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange, on
                       </button>
 
                       <button
-                        onClick={() => onPassengerCancel(reservations._id || reservations.id)}
+                        onClick={() => onPassengerCancel(res._id)}
                         className="w-full px-6 py-3 rounded-xl bg-orange-400 text-white font-semibold"
                       >
                         Decline
@@ -219,7 +220,7 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange, on
                   {/* Si eres pasajero y aún está pendiente -> cancelar */}
                   {isPassenger && reservations.status === "pending" && (
                     <button
-                      onClick={() => onPassengerCancel(reservations._id || reservations.id)}
+                      onClick={() => onPassengerCancel(res._id)}
                       className="w-full px-6 py-3 rounded-xl bg-orange-400 text-white font-semibold"
                     >
                       Cancel reservations
