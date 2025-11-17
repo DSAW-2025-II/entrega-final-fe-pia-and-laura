@@ -75,7 +75,13 @@ const AccountIcon = (filled) => (
 
 
 /* ==== CARD COMPONENT ==== */
-/* ==== CARD COMPONENT (LIMPIO) ==== */
+// === ESTILOS PARA EL ESTADO DE LA RESERVA ===
+const statusStyles = {
+  pending: "bg-[#374151] text-black",
+  accepted: "bg-[#10B981] text-white",
+  declined: "bg-[#F59739] text-white",
+};
+
 export function ReservationsCard({ reservations, currentUser, onStatusChange }) {
   const [open, setOpen] = useState(false);
 
