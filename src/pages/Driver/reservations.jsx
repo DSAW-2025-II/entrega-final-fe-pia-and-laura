@@ -208,7 +208,8 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange, on
                       </button>
 
                       <button
-                        onClick={() => onPassengerCancel(res._id)}
+                        onClick={() => onPassengerCancel(reservations._id || reservations.id
+)}
                         className="w-full px-6 py-3 rounded-xl bg-orange-400 text-white font-semibold"
                       >
                         Decline
@@ -219,7 +220,8 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange, on
                   {/* Si eres pasajero y aún está pendiente -> cancelar */}
                   {isPassenger && reservations.status === "pending" && (
                     <button
-                      onClick={() => onPassengerCancel(res._id)}
+                      onClick={() => onPassengerCancel(reservations._id || reservations.id
+)}
                       className="w-full px-6 py-3 rounded-xl bg-orange-400 text-white font-semibold"
                     >
                       Cancel reservations
@@ -323,41 +325,62 @@ export default function ReservationsPage() {
     });
 
     // Refrescar lista después de cambiar estado
-    setreservations(prev =>
-      ({
-        today: prev.today.map(r => r._id === id ? { ...r, status: newStatus } : r),
-        tomorrow: prev.tomorrow.map(r => r._id === id ? { ...r, status: newStatus } : r),
-      })
-    );
+        setreservations(prev => {
+          if (Array.isArray(prev)) {
+            return prev.map(r =>
+              r._id === id ? { ...r, status: newStatus } : r
+            );
+          }
 
-  } catch (err) {
-    console.error("Error updating status:", err);
-  }
+          return {
+            today: prev.today.map(r =>
+              r._id === id ? { ...r, status: newStatus } : r
+            ),
+            tomorrow: prev.tomorrow.map(r =>
+              r._id === id ? { ...r, status: newStatus } : r
+            ),
+          };
+        });
+
+    } catch (err) {
+      console.error("Error updating status:", err);
+    }
   
 };
 
 
-  const onPassengerCancel = async (id) => {
-    try {
-      console.log("🟥 ID usado para cancelar reservations._id:", reservations._id);
-      console.log("🟥 ID usado para cancelar r._id:", r._id);
-        await fetch(`${API_URL}/reservations/${id}/cancel`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        }
-      });
+const onPassengerCancel = async (id) => {
+  try {
+    await fetch(`${API_URL}/reservations/${id}/cancel`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      }
+    });
 
-      // actualizar UI
-    setreservations(prev => ({
-        today: prev.today.map(r => r._id === id ? { ...r, status: "cancelled" } : r),
-        tomorrow: prev.tomorrow.map(r => r._id === id ? { ...r, status: "cancelled" } : r),
-      }));
-    } catch (err) {
-      console.error("Error cancelling reservations:", err);
-    }
-  };
+    // actualizar UI
+    setreservations(prev => {
+      if (Array.isArray(prev)) {
+        return prev.map(r =>
+          r._id === id ? { ...r, status: "cancelled" } : r
+        );
+      }
+
+      return {
+        today: prev.today.map(r =>
+          r._id === id ? { ...r, status: "cancelled" } : r
+        ),
+        tomorrow: prev.tomorrow.map(r =>
+          r._id === id ? { ...r, status: "cancelled" } : r
+        ),
+      };
+    });
+
+  } catch (err) {
+    console.error("Error cancelling reservation:", err);
+  }
+};
 
 
   /* ==== RENDER ==== */
