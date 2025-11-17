@@ -209,7 +209,9 @@ export default function HomePassenger() {
                 My rides
             </p>
             </button>
-            <button className="flex-shrink-0 flex flex-col items-center bg-gray-100 rounded-xl p-3 w-28 md:w-full max-w-[280px] md:max-w-none h-28 md:h-auto justify-center">
+            <button onClick={() => navigate("/searchRide")} // 👈 Navega a la página de reservas
+              className="flex-shrink-0 flex flex-col items-center bg-gray-100 rounded-xl p-3 w-28 md:w-full max-w-[280px] md:max-w-none h-28 md:h-auto justify-center hover:bg-gray-200 transition"
+            >
               <img
                 src={reservations}
                 alt="Reservations"

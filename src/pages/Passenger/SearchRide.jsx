@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SearchRideMap from "../components/SearchRideMap";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function SearchRide() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]); // sugerencias
   const [selectedLocation, setSelectedLocation] = useState(null); // punto elegido
+  const {user, token } = useAuth();
   const [selectedSeats, setSelectedSeats] = useState("");
+  const [fullUser, setFullUser] = useState(user);
 
   const handleFilterChange = (e) => {
     setSelectedSeats(e.target.value);
@@ -28,7 +32,23 @@ export default function SearchRide() {
       console.error("Error buscando lugares:", err);
     }
   };
-
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_URL}/user/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setFullUser(data);
+        }
+      } catch (err) {
+        console.error("Error connecting to server:", err);
+      }
+    };
+    fetchUser();
+  }, [token]);
   const handleSelect = (place) => {
     setSelectedLocation({
       name: place.place_name,
@@ -58,26 +78,53 @@ const handleSearchClick = () => {
 
   return (
     <div className="relative w-full h-screen bg-white font-[Plus Jakarta Sans]">
-     <header className="sticky top-0 left-0 right-0 z-30 bg-white w-full h-16 border-b border-gray-200">
+     <header className="sticky top-10 left-0 right-0 z-30 bg-white w-full h-16 border-b border-gray-200">
   <div className="flex items-center justify-between h-full px-4">
-    <button
-      onClick={() => navigate("/passengerHome")}
-      className="p-2 flex items-center justify-center h-10 w-10"
-      aria-label="Back"
-    >
-      <BackIcon className="w-6 h-6 text-gray-800" />
-    </button>
+      {/* Flecha de retroceso */}
+      <button
+        className="text-gray-800 text-2xl"
+        onClick={() => navigate("/passengerHome")}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+          className="w-6 h-6"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+        </svg>
+      </button>
 
-    <h1 className="text-2xl md:text-3xl font-bold text-gray-800 text-center flex-1">
-      Reservations
+    <h1 className="text-4xl md:text-4xl font-bold text-gray-800 text-center flex-1">
+      Search a ride
     </h1>
+    {/* 🔹 Foto y nombre alineados */}
+        <div className="flex items-center gap-4">
+          <span className="font-semibold text-lg text-gray-800">
+            {fullUser?.name || "Wheeler"}
+          </span>
+          <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 border border-gray-300">
+            {fullUser?.photo ? (
+              <img
+                src={fullUser.photo}
+                alt="User Avatar"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-400" />
+            )}
+          </div>
+          
+        </div>
 
     <div className="w-10 h-10" aria-hidden="true" />
   </div>
 </header>
 
       {/* Mapa */}
-      <div className="absolute top-36 left-0 w-full h-[70%]">
+      <div className="absolute top-29 left-0 right-0 bottom-0">
         <SearchRideMap
           selectedLocation={selectedLocation}
           onMapClick={handleMapClick}
