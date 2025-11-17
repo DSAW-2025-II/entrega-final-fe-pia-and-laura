@@ -32,7 +32,7 @@ const BackIcon = ({ className = "w-6 h-6" }) => (
   </svg>
 );
 
-const HomeIcon = (filled) => (
+const HomeIcon = ({filled}) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill={filled ? "#000" : "none"}>
     <path
       d="M12 3.172L3 10.172V20a1 1 0 001 1h5v-6h4v6h5a1 1 0 001-1v-9.828L12 3.172z"
@@ -42,7 +42,7 @@ const HomeIcon = (filled) => (
   </svg>
 );
 
-const ActivityIcon = (filled) => (
+const ActivityIcon = ({filled}) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
     <path
       d="M3 13h4l3-9 4 18 3-7h4"
@@ -54,7 +54,7 @@ const ActivityIcon = (filled) => (
   </svg>
 );
 
-const AccountIcon = (filled) => (
+const AccountIcon = ({filled}) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
     <path
       d="M12 12a4 4 0 100-8 4 4 0 000 8z"
@@ -77,14 +77,14 @@ const AccountIcon = (filled) => (
 /* ==== CARD COMPONENT ==== */
 // === ESTILOS PARA EL ESTADO DE LA RESERVA ===
 const statusStyles = {
-  pending: "bg-[#374151] text-black",
+  pending: "bg-[#374151] text-white",
   accepted: "bg-[#10B981] text-white",
   declined: "bg-[#F59739] text-white",
 };
 
 export function ReservationsCard({ reservations, currentUser, onStatusChange, getId }) {
   const [open, setOpen] = useState(false);
-
+  console.log("🧾 ID en la card:", getId(reservations));
   const currentId = currentUser?._id || currentUser?.id || null;
   const driverId = reservations?.driver?._id || reservations?.driver?.id || null;
   const passengerId = reservations?.passenger?._id || reservations?.passenger?.id || null;
@@ -341,6 +341,7 @@ export default function ReservationsPage() {
     console.error("❌ No ID provided to update status");
     return;
   }
+  console.log("📌 Enviando update para ID:", id);
 
   try {
     const res = await fetch(`${API_URL}/reservations/status/${id}`, {
@@ -482,21 +483,21 @@ export default function ReservationsPage() {
           <nav className="relative w-full max-w-[414px] h-[83px] flex items-start justify-center py-[5%] gap-[33px]">
 
             <button onClick={handleHomeClick} className="flex flex-col items-center gap-1">
-              {HomeIcon(active === "home")}
+              {HomeIcon({filled: active === "home"})}
               <span className={`text-sm font-medium ${active === "home" ? "text-black" : "text-gray-500"}`}>
                 Home
               </span>
             </button>
 
             <button onClick={handleActivityClick} className="flex flex-col items-center gap-1">
-              {ActivityIcon(active === "activity")}
+              {ActivityIcon({filled: active === "activity"})}
               <span className={`text-sm font-medium ${active === "activity" ? "text-black" : "text-gray-500"}`}>
                 Activity
               </span>
             </button>
 
             <button onClick={handleAccountClick} className="flex flex-col items-center gap-1">
-              {AccountIcon(active === "account")}
+              {AccountIcon({filled: active === "account"})}
               <span className={`text-sm font-medium ${active === "account" ? "text-black" : "text-gray-500"}`}>
                 Account
               </span>
