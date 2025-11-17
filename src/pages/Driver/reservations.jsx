@@ -96,7 +96,7 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange, on
   const badgeColor =
     reservations.status === "pending"
       ? "bg-amber-100 text-amber-700"
-      : reservations.status === "confirmed"
+      : reservations.status === "accepted"
       ? "bg-emerald-100 text-emerald-700"
       : reservations.status === "cancelled"
       ? "bg-red-100 text-red-700"
@@ -201,7 +201,7 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange, on
                   {isDriver && reservations.status === "pending" && (
                     <>
                       <button
-                        onClick={() => onStatusChange(reservations._id || reservations.id, "confirmed")}
+                        onClick={() => onStatusChange(reservations._id || reservations.id, "accepted")}
                         className="w-full px-6 py-3 rounded-xl bg-emerald-400 text-white font-semibold mb-3 shadow"
                       >
                         Accept
