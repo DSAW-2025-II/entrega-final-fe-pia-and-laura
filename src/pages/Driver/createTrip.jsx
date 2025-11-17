@@ -231,7 +231,7 @@ const generateRoute = async () => {
     <div className="relative flex flex-col items-center w-full min-h-screen bg-white p-6 font-[Plus Jakarta Sans]">
       {/* Header */}
       <header className="flex justify-between items-center w-full max-w-6xl mt-6">
-        <button className="absolute top-6 left-6" onClick={() => navigate(-1)}>
+        <button className="absolute top-6 left-6" onClick={() => navigate("/driverHome")}>
           <ArrowLeft size={32} className="text-black" />
         </button>
 

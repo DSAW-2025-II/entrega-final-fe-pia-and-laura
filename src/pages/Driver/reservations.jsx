@@ -459,7 +459,7 @@ export default function ReservationsPage() {
     navigate("/reservations");
   };
 
-  const handleBackClick = () => navigate(-1);
+  const handleBackClick = () => navigate("/PassengerHome");
 
 
   /* ===========================================

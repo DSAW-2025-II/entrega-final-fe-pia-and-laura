@@ -164,7 +164,7 @@ export default function CarSignIn() {
 
       if (response.ok) {
         setShowBackArrow(false);
-        navigate("/driverHome");
+        navigate("/login");
       } else {
         setFormMessage({
           type: "error",
