@@ -266,22 +266,6 @@ export default function HomePassenger() {
                 </li>
               </ul>
             </div>
-
-            {/* Next ride */}
-            <div className="bg-emerald-500 text-white rounded-xl px-4 py-3 flex items-center justify-between h-[60px] md:h-[70px] flex-shrink-0">
-              <div>
-                <div className="font-bold text-sm md:text-lg">Next ride</div>
-                <div className="text-[10px] md:text-sm opacity-80">
-                  To: Destination
-                </div>
-              </div>
-              <div className="flex items-center gap-2 md:gap-4">
-                <span className="text-lg md:text-2xl font-extrabold">13:00</span>
-                <button className="w-6 h-6 md:w-8 md:h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-                  x
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </main>
