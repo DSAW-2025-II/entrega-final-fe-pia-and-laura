@@ -209,22 +209,22 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange, ge
 
   <p>
     <span className="font-semibold">Start point:</span>{" "}
-    {reservations.trip?.start ?? "N/A"}
+    {reservations.trip?.startPoint ?? reservations.origin}
   </p>
 
   <p>
     <span className="font-semibold">Destination:</span>{" "}
-    {reservations.trip?.destination ?? reservations.destination}
+    {reservations.trip?.endPoint ?? reservations.destination}
   </p>
 
   <p>
     <span className="font-semibold">Route:</span>{" "}
-    {reservations.trip?.route ?? "N/A"}
+    {reservations.trip?.route || "N/A"}
   </p>
 
   <p>
     <span className="font-semibold">Available seats:</span>{" "}
-    {reservations.trip?.availableSeats ?? "N/A"}
+    {reservations.trip?.availableSeats ?? reservations.availableSeats ?? reservations.seats ?? "N/A"}
   </p>
 
   <p>
@@ -241,6 +241,7 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange, ge
   </p>
 
 </div>
+
 
 
           {/* Precio destacado */}
