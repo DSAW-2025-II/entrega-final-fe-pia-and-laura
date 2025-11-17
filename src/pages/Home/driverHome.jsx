@@ -6,7 +6,7 @@ import calendarBenefits from "../../../assets/calendarBenefits.png";
 import clockBenefits from "../../../assets/clockBenefits.png";
 import cardBenefits from "../../../assets/cardBenefits.png";
 import homeCar from "../../../assets/homeCar.png";
-import reservationss from "../../../assets/reservationss.png";
+import reservations from "../../../assets/reservations.png";
 
 
 export default function HomeDriver() {
@@ -42,8 +42,8 @@ export default function HomeDriver() {
   fetchUser();
 }, []);
 
-  const handlereservationssClick = () => {
-    navigate("/reservationss");
+  const handlereservationsClick = () => {
+    navigate("/reservations");
   };
   const handleTripClick = () => {
     navigate("/createTrip");
@@ -64,7 +64,7 @@ export default function HomeDriver() {
 
   const handleActivityClick = () => {
     setActive("activity");
-    navigate("/reservationss");
+    navigate("/reservations");
   };
 
   const HomeIcon = (filled) => (
@@ -189,17 +189,17 @@ export default function HomeDriver() {
               <p className="mt-2 font-semibold text-sm md:text-base text-center">New ride</p>
             </button>
             <button
-              onClick={handlereservationssClick}
+              onClick={handlereservationsClick}
               className="flex-shrink-0 flex flex-col items-center bg-gray-100 rounded-xl p-3 w-28 md:w-full max-w-[280px] md:max-w-none h-28 md:h-auto justify-center"
             >
               <img
-                src={reservationss}
-                alt="reservationss"
+                src={reservations}
+                alt="reservations"
                 className="w-24 md:w-40 h-auto object-contain"
               />
               <p 
               className="mt-2 font-semibold text-sm md:text-base text-center">
-              reservationss
+              reservations
               </p>
             </button>
           </div>

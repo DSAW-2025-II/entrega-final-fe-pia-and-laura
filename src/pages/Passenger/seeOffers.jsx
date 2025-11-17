@@ -88,7 +88,7 @@ const handleBookTrip = async () => {
   }
 
   try {
-    const res = await fetch(`${API_URL}/reservationss`, {
+    const res = await fetch(`${API_URL}/reservations`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -109,7 +109,7 @@ const handleBookTrip = async () => {
     }
 
     console.log("reservations created successfully!");
-    navigate("/myreservationss");
+    navigate("/myreservations");
   } catch (error) {
     console.error("Error creating reservations:", error);
     console.error("Error creating reservations");

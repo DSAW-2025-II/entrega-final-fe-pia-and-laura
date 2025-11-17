@@ -75,13 +75,13 @@ const AccountIcon = (filled) => (
 
 
 /* ==== CARD COMPONENT ==== */
-export function reservationsCard({ reservationss, currentUser, onStatusChange, onPassengerCancel }) {
+export function reservationsCard({ reservations, currentUser, onStatusChange, onPassengerCancel }) {
   const [open, setOpen] = useState(false);
   
   // Gestionar comparaciones de id (asegúrate de que currentUser tenga _id o id)
   const currentId = currentUser?._id || currentUser?.id || null;
-  const driverId = reservationss?.driver?._id || reservationss?.driver?.id || null;
-  const passengerId = reservationss?.passenger?._id || reservationss?.passenger?.id || null;
+  const driverId = reservations?.driver?._id || reservations?.driver?.id || null;
+  const passengerId = reservations?.passenger?._id || reservations?.passenger?.id || null;
 
   const isDriver = currentId && driverId && String(currentId) === String(driverId);
   const isPassenger = currentId && passengerId && String(currentId) === String(passengerId);
@@ -94,11 +94,11 @@ export function reservationsCard({ reservationss, currentUser, onStatusChange, o
 
   // Colores por estado (para badge de la izquierda)
   const badgeColor =
-    reservationss.status === "pending"
+    reservations.status === "pending"
       ? "bg-amber-100 text-amber-700"
-      : reservationss.status === "confirmed"
+      : reservations.status === "confirmed"
       ? "bg-emerald-100 text-emerald-700"
-      : reservationss.status === "cancelled"
+      : reservations.status === "cancelled"
       ? "bg-red-100 text-red-700"
       : "bg-slate-100 text-slate-700";
 
@@ -115,11 +115,11 @@ export function reservationsCard({ reservationss, currentUser, onStatusChange, o
     {/* LEFT SIDE */}
     <div className="flex flex-col text-white w-[60%]">
       <span className="text-xs font-semibold opacity-90">
-        To: {reservationss.destination}
+        To: {reservations.destination}
       </span>
 
       <span className="text-2xl font-extrabold mt-1">
-        {new Date(reservationss.date).toLocaleTimeString([], {
+        {new Date(reservations.date).toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
         })}
@@ -136,11 +136,11 @@ export function reservationsCard({ reservationss, currentUser, onStatusChange, o
     {/* RIGHT SIDE */}
     <div className="flex flex-col text-right text-white">
       <span className="text-sm font-semibold">
-        Passenger: {reservationss?.passenger?.name || "Passenger"}
+        Passenger: {reservations?.passenger?.name || "Passenger"}
       </span>
 
       <span className="text-lg font-extrabold mt-1">
-        ${reservationss.price}
+        ${reservations.price}
       </span>
     </div>
   </div>
@@ -244,9 +244,9 @@ export function reservationsCard({ reservationss, currentUser, onStatusChange, o
 
 
 /* ==== MAIN PAGE ==== */
-export default function reservationssPage() {
+export default function reservationsPage() {
   const [active, setActive] = useState("activity");
-  const [reservationss, setreservationss] = useState([]);
+  const [reservations, setreservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -255,12 +255,12 @@ export default function reservationssPage() {
   useEffect(() => {
     if (!user?.id && !user?._id) return;
 
-    const fetchreservationss = async () => {
+    const fetchreservations = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const res = await fetch(`${API_URL}/reservationss/${user.id || user._id}`, {
+        const res = await fetch(`${API_URL}/reservations/${user.id || user._id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -270,28 +270,28 @@ export default function reservationssPage() {
         const data = await res.json();
         console.log("📦 Respuesta del backend:", data);
 
-        if (!res.ok) throw new Error(data.message || "Error fetching reservationss");
+        if (!res.ok) throw new Error(data.message || "Error fetching reservations");
 
         // Asegurar que siempre sea un array
         if (Array.isArray(data)) {
-          setreservationss(data);
+          setreservations(data);
         } else if (data.today || data.tomorrow) {
-          setreservationss({
+          setreservations({
             today: data.today || [],
             tomorrow: data.tomorrow || []
           });
         } else {
-          setreservationss([]);
+          setreservations([]);
         }
       } catch (error) {
-        console.error("Error fetching reservationss:", error);
-        setError("Error fetching reservationss");
+        console.error("Error fetching reservations:", error);
+        setError("Error fetching reservations");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchreservationss();
+    fetchreservations();
   }, [user, token]);
 
   /* ==== NAVIGATION ==== */
@@ -307,13 +307,13 @@ export default function reservationssPage() {
 
   const handleActivityClick = () => {
     setActive("activity");
-    navigate("/reservationss");
+    navigate("/reservations");
   };
 
   const handleBackClick = () => navigate(-1);
   const handleStatusChange = async (id, newStatus) => {
   try {
-    await fetch(`${API_URL}/reservationss/status/${id}`, {
+    await fetch(`${API_URL}/reservations/status/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -323,7 +323,7 @@ export default function reservationssPage() {
     });
 
     // Refrescar lista después de cambiar estado
-    setreservationss(prev =>
+    setreservations(prev =>
       ({
         today: prev.today.map(r => r._id === id ? { ...r, status: newStatus } : r),
         tomorrow: prev.tomorrow.map(r => r._id === id ? { ...r, status: newStatus } : r),
@@ -337,7 +337,7 @@ export default function reservationssPage() {
 };
   const onPassengerCancel = async (id) => {
     try {
-      await fetch(`${API_URL}/reservationss/${id}/cancel`, {
+      await fetch(`${API_URL}/reservations/${id}/cancel`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -346,7 +346,7 @@ export default function reservationssPage() {
       });
 
       // actualizar UI
-    setreservationss(prev => ({
+    setreservations(prev => ({
         today: prev.today.map(r => r._id === id ? { ...r, status: "cancelled" } : r),
         tomorrow: prev.tomorrow.map(r => r._id === id ? { ...r, status: "cancelled" } : r),
       }));
@@ -371,7 +371,7 @@ export default function reservationssPage() {
     </button>
 
     <h1 className="text-2xl md:text-3xl font-bold text-gray-800 text-center flex-1">
-      reservationss
+      reservations
     </h1>
 
     <div className="w-10 h-10" aria-hidden="true" />
@@ -384,15 +384,15 @@ export default function reservationssPage() {
   {error ? (
     <p className="text-red-500 text-center">{error}</p>
   ) : loading ? (
-    <p className="text-gray-500 text-center">Loading reservationss...</p>
-  ) : reservationss.today || reservationss.tomorrow ? (
+    <p className="text-gray-500 text-center">Loading reservations...</p>
+  ) : reservations.today || reservations.tomorrow ? (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {/* TODAY COLUMN */}
       <div>
         <h2 className="text-xl font-semibold text-gray-800 mb-4">Today</h2>
-        {reservationss.today && reservationss.today.length > 0 ? (
+        {reservations.today && reservations.today.length > 0 ? (
           <div className="flex flex-col gap-4 items-center">
-            {reservationss.today.map((res) => (
+            {reservations.today.map((res) => (
         <reservationsCard
           key={res._id || res.id}
           reservations={res}
@@ -412,9 +412,9 @@ export default function reservationssPage() {
       {/* TOMORROW COLUMN */}
       <div>
         <h2 className="text-xl font-semibold text-gray-800 mb-4">Tomorrow</h2>
-        {reservationss.tomorrow && reservationss.tomorrow.length > 0 ? (
+        {reservations.tomorrow && reservations.tomorrow.length > 0 ? (
           <div className="flex flex-col gap-4 items-center">
-            {reservationss.tomorrow.map((res) => (
+            {reservations.tomorrow.map((res) => (
           <reservationsCard
             key={res._id || res.id}
             reservations={res}
@@ -431,7 +431,7 @@ export default function reservationssPage() {
       </div>
     </div>
   ) : (
-    <p className="text-gray-500 text-center">No reservationss found.</p>
+    <p className="text-gray-500 text-center">No reservations found.</p>
   )}
 </main>
 

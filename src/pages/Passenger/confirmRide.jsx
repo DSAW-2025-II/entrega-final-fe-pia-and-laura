@@ -175,7 +175,7 @@ useEffect(() => {
   console.log("📤 ENVIANDO RESERVA AL BACKEND:", payload);
 
   try {
-    const res = await fetch(`${API_URL}/reservationss`, {
+    const res = await fetch(`${API_URL}/reservations`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -192,7 +192,7 @@ useEffect(() => {
       return;
     }
 
-    navigate("/reservationss");
+    navigate("/reservations");
   } catch (err) {
     console.error("❌ ERROR FETCH:", err);
     setErrorMsg("Error creating reservations");
