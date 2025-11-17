@@ -75,7 +75,7 @@ const AccountIcon = (filled) => (
 
 
 /* ==== CARD COMPONENT ==== */
-export function reservationsCard({ reservations, currentUser, onStatusChange, onPassengerCancel }) {
+export function ReservationsCard({ reservations, currentUser, onStatusChange, onPassengerCancel }) {
   const [open, setOpen] = useState(false);
   
   // Gestionar comparaciones de id (asegúrate de que currentUser tenga _id o id)
@@ -244,7 +244,7 @@ export function reservationsCard({ reservations, currentUser, onStatusChange, on
 
 
 /* ==== MAIN PAGE ==== */
-export default function reservationsPage() {
+export default function ReservationsPage() {
   const [active, setActive] = useState("activity");
   const [reservations, setreservations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -371,7 +371,7 @@ export default function reservationsPage() {
     </button>
 
     <h1 className="text-2xl md:text-3xl font-bold text-gray-800 text-center flex-1">
-      reservations
+      Reservations
     </h1>
 
     <div className="w-10 h-10" aria-hidden="true" />

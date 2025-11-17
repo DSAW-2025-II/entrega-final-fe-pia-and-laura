@@ -199,7 +199,7 @@ export default function HomeDriver() {
               />
               <p 
               className="mt-2 font-semibold text-sm md:text-base text-center">
-              reservations
+              Reservations
               </p>
             </button>
           </div>

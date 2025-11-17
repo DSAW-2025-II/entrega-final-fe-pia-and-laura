@@ -109,7 +109,7 @@ const handleBookTrip = async () => {
     }
 
     console.log("reservations created successfully!");
-    navigate("/myreservations");
+    navigate("/reservations");
   } catch (error) {
     console.error("Error creating reservations:", error);
     console.error("Error creating reservations");
