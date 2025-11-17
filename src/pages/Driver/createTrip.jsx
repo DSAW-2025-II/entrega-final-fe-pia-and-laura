@@ -68,12 +68,16 @@ const handleChange = (e) => {
       newErrors.departureTime = "Required field *";
     } else {
       const selectedDate = new Date(trip.departureTime);
-      const now = new Date();
-    
-      if (selectedDate < now) {
+
+      // Ajustar ambas fechas a horario Colombia (UTC-5)
+      const selectedCol = new Date(selectedDate.getTime() - 5 * 60 * 60 * 1000);
+      const nowCol = new Date(Date.now() - 5 * 60 * 60 * 1000);
+
+      if (selectedCol < nowCol) {
         newErrors.departureTime = "Date and time must be in the future.*";
       }
     }
+
 
     if (!trip.seats) newErrors.seats = "Required field *";
     else if (trip.seats <= 0) newErrors.seats = "Number of seats must be greater than 0.";
