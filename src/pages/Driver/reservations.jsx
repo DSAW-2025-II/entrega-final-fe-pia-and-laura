@@ -84,6 +84,7 @@ const statusStyles = {
 
 export function ReservationsCard({ reservations, currentUser, onStatusChange, getId }) {
   const [open, setOpen] = useState(false);
+  console.log("🔍 RESERVATION OBJECT:", reservations);
   console.log("🧾 ID en la card:", getId(reservations));
   const currentId = currentUser?._id || currentUser?.id || null;
   const driverId = reservations?.driver?._id || reservations?.driver?.id || null;
@@ -204,6 +205,43 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange, ge
               <p>Passenger: <span className="font-semibold">{reservations.passenger?.name}</span></p>
             )}
           </div>
+          <div className="mt-6 space-y-3 text-sm">
+
+  <p>
+    <span className="font-semibold">Start point:</span>{" "}
+    {reservations.trip?.start ?? "N/A"}
+  </p>
+
+  <p>
+    <span className="font-semibold">Destination:</span>{" "}
+    {reservations.trip?.destination ?? reservations.destination}
+  </p>
+
+  <p>
+    <span className="font-semibold">Route:</span>{" "}
+    {reservations.trip?.route ?? "N/A"}
+  </p>
+
+  <p>
+    <span className="font-semibold">Available seats:</span>{" "}
+    {reservations.trip?.availableSeats ?? "N/A"}
+  </p>
+
+  <p>
+    <span className="font-semibold">Departure time:</span>{" "}
+    {reservations.trip?.departureTime
+      ? new Date(reservations.trip.departureTime).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit"
+        })
+      : new Date(reservations.date).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit"
+        })}
+  </p>
+
+</div>
+
 
           {/* Precio destacado */}
           <motion.p
@@ -211,7 +249,7 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange, ge
             animate={{ scale: 1 }}
             className="mt-8 text-5xl font-extrabold"
           >
-            ${reservations.price}
+            ${reservations.trip?.price ?? reservations.price}
           </motion.p>
         </div>
 
