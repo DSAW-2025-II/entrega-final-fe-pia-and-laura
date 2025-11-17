@@ -84,9 +84,7 @@ const statusStyles = {
 
 export function ReservationsCard({ reservations, currentUser, onStatusChange, getId }) {
   const [open, setOpen] = useState(false);
-  console.log("🔍 RESERVATION OBJECT:", reservations);
-  console.log("🧾 ID en la card:", getId(reservations));
-  console.log("RESERVATION FULL DATA 👉", reservations);
+  console.log("🎯 Pickup Points:", reservations.pickupPoints);
   const currentId = currentUser?._id || currentUser?.id || null;
   const driverId = reservations?.driver?._id || reservations?.driver?.id || null;
   const passengerId = reservations?.passenger?._id || reservations?.passenger?.id || null;
@@ -251,22 +249,25 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange, ge
   
 )}
 
-{/* === PICKUP POINTS === */}
+{/* === PICKUP POINTS (CHIPS STYLE) === */}
 {Array.isArray(reservations.pickupPoints) && reservations.pickupPoints.length > 0 && (
-  <div className="mt-4 p-3 bg-white/20 rounded-xl text-sm max-h-32 overflow-y-auto">
+  <div className="mt-4 p-3 bg-white/20 rounded-xl text-sm">
     <span className="font-semibold block mb-2">Pickup Points:</span>
 
-    {reservations.pickupPoints.map((point, index) => (
-      <div
-        key={index}
-        className="mb-2 p-2 bg-white/10 rounded-lg border border-white/20"
-      >
-        <span className="font-semibold">#{index + 1}:</span>{" "}
-        <span>{point}</span>
-      </div>
-    ))}
+    <div className="flex flex-wrap gap-2">
+      {reservations.pickupPoints.map((point, index) => (
+        <div
+          key={index}
+          className="px-3 py-1 rounded-full bg-white/20 border border-white/30 text-xs font-semibold flex items-center gap-2"
+        >
+          <span className="opacity-80">#{index + 1}</span>
+          <span>{point}</span>
+        </div>
+      ))}
+    </div>
   </div>
 )}
+
           {/* Precio destacado */}
           <motion.p
             initial={{ scale: 0.8 }}
