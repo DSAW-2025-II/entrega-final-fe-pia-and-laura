@@ -73,30 +73,11 @@ const AccountIcon = (filled) => (
   </svg>
 );
 
-const onPassengerCancel = async (id) => {
-  try {
-    await fetch(`${API_URL}/reservations/${id}/cancel`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      }
-    });
-
-    // actualizar UI
-    setReservations(prev => ({
-      today: prev.today.map(r => r._id === id ? { ...r, status: "cancelled" } : r),
-      tomorrow: prev.tomorrow.map(r => r._id === id ? { ...r, status: "cancelled" } : r),
-    }));
-  } catch (err) {
-    console.error("Error cancelling reservation:", err);
-  }
-};
 
 /* ==== CARD COMPONENT ==== */
-export function ReservationCard({ reservation, currentUser, onStatusChange }) {
+export function ReservationCard({ reservation, currentUser, onStatusChange, onPassengerCancel }) {
   const [open, setOpen] = useState(false);
-
+  
   // Gestionar comparaciones de id (asegúrate de que currentUser tenga _id o id)
   const currentId = currentUser?._id || currentUser?.id || null;
   const driverId = reservation?.driver?._id || reservation?.driver?.id || null;
@@ -352,7 +333,28 @@ export default function ReservationsPage() {
   } catch (err) {
     console.error("Error updating status:", err);
   }
+  
 };
+  const onPassengerCancel = async (id) => {
+    try {
+      await fetch(`${API_URL}/reservations/${id}/cancel`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        }
+      });
+
+      // actualizar UI
+    setReservations(prev => ({
+        today: prev.today.map(r => r._id === id ? { ...r, status: "cancelled" } : r),
+        tomorrow: prev.tomorrow.map(r => r._id === id ? { ...r, status: "cancelled" } : r),
+      }));
+    } catch (err) {
+      console.error("Error cancelling reservation:", err);
+    }
+  };
+
 
   /* ==== RENDER ==== */
   return (
@@ -396,6 +398,7 @@ export default function ReservationsPage() {
           reservation={res}
           currentUser={user}
           onStatusChange={handleStatusChange}
+          onPassengerCancel={onPassengerCancel}
         />
 
 
@@ -417,6 +420,7 @@ export default function ReservationsPage() {
             reservation={res}
             currentUser={user}
             onStatusChange={handleStatusChange}
+            onPassengerCancel={onPassengerCancel}
           />
 
             ))}
