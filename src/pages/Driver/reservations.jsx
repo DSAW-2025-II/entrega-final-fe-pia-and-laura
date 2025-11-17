@@ -335,12 +335,13 @@ export default function ReservationsPage() {
   }
   
 };
-console.log("🟥 ID usado para cancelar reservations._id:", reservations._id);
-console.log("🟥 ID usado para cancelar r._id:", r._id);
-console.log("🟥 ID usado para cancelarres._id:", res._id);
+
 
   const onPassengerCancel = async (id) => {
     try {
+      console.log("🟥 ID usado para cancelar reservations._id:", reservations._id);
+      console.log("🟥 ID usado para cancelar r._id:", r._id);
+      console.log("🟥 ID usado para cancelarres._id:", res._id);
         await fetch(`${API_URL}/reservations/${id}/cancel`, {
         method: "PUT",
         headers: {
