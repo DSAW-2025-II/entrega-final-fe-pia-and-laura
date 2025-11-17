@@ -7,6 +7,24 @@ import AutocompleteInput from "./AutocompleteInput";
 
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
+function utcToLocalInputFormat(dateStringUTC) {
+  if (!dateStringUTC) return "";
+
+  const date = new Date(dateStringUTC);
+
+  // Convertir UTC → Colombia (UTC-5)
+  const colombia = new Date(date.getTime() - 5 * 60 * 60 * 1000);
+
+  // Obtener partes de fecha
+  const year = colombia.getFullYear();
+  const month = String(colombia.getMonth() + 1).padStart(2, "0");
+  const day = String(colombia.getDate()).padStart(2, "0");
+  const hours = String(colombia.getHours()).padStart(2, "0");
+  const minutes = String(colombia.getMinutes()).padStart(2, "0");
+
+  // Formato compatible con <input type="datetime-local">
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
 
 export default function CreateTrip() {
   const { user, token } = useAuth();
@@ -119,37 +137,38 @@ body: JSON.stringify({
 });
   const data = await res.json();
 
-  if (res.ok) {
-    // 🟢 Mostrar popup con datos del viaje
+if (res.ok) {
     setTripData({
       destination: data.endPoint,
-      time: new Date(
-      new Date(data.departureTime).getTime() - 5 * 3600 * 1000
-      ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-
+      time: new Date(data.departureTime).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       price: data.price,
       driver: fullUser?.name || "Driver Name",
     });
 
+    // Convertir UTC → Colombia y dejarla lista para el input
+    const formattedLocal = utcToLocalInputFormat(data.departureTime);
+
     setShowSuccessPopup(true);
 
-      // Limpia los campos
+    // Limpia los campos PERO deja el input de fecha con formato correcto
     setTrip({
       startPoint: "",
       endPoint: "",
       route: "",
-      departureTime: "",
+      departureTime: formattedLocal, // ← AQUÍ SE USA
       seats: "",
       price: "",
     });
-  } else {
-    setMessage(`❌ ${data.message || "Error creating trip"}`);
-  }
-} catch (err) {
-  console.error("Error creating trip:", err);
-  setMessage("❌ Error connecting to server.");
-}
-
+    } else {
+        setMessage(`❌ ${data.message || "Error creating trip"}`);
+      }
+    } catch (err) {
+      console.error("Error creating trip:", err);
+      setMessage("❌ Error connecting to server.");
+    }
   };
 const reverseGeocodeZone = async (coords) => {
   const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${coords[0]},${coords[1]}.json?types=address,neighborhood,locality,place&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`;
