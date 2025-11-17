@@ -101,9 +101,8 @@ export default function UserProfile() {
 
   // 🔹 Menú base (sin "Be a driver" fijo)
   const menuItems = [
-    { icon: <Mail />, text: "Notifications" },
-    { icon: <HelpCircle />, text: "Help" },
-    { icon: <Settings />, text: "Settings" },
+    { icon: <Mail />, text: "Notifications", route: "/reservations" },
+    { icon: <Settings />, text: "Settings", route: "/settings" },
   ];
 
   return (
@@ -134,25 +133,24 @@ export default function UserProfile() {
         {/* Columna derecha: menú */}
         <div className="w-full md:flex-1 flex flex-col gap-4">
           {/* Renderizar el resto de items */}
-          {menuItems.map((item, i) => (
-            <button
-              key={i}
-              onClick={() => {
-                if (item.text === "Settings") navigate("/settings");
-              }}
-              className="flex items-center justify-between bg-[#F2EEEC] rounded-3xl px-4 py-2 hover:bg-[#E9E6E4] transition shadow-md w-full"
-            >
-              <div className="flex items-center gap-6 text-black text-xl md:text-2xl font-semibold">
-                <div className="bg-white p-4 rounded-lg shadow-sm flex items-center justify-center">
-                  {React.cloneElement(item.icon, {
-                    className: "w-9 h-9 text-black",
-                  })}
-                </div>
-                <span>{item.text}</span>
-              </div>
-              <ChevronRight className="w-8 h-8 text-gray-400" />
-            </button>
-          ))}
+          {/* Renderizar menú con tu snippet EXACTO */}
+{menuItems.map((item, i) => (
+  <button
+    key={i}
+    onClick={() => navigate(item.route)}
+    className="flex items-center justify-between bg-[#F2EEEC] rounded-3xl px-4 py-2 hover:bg-[#E9E6E4] transition shadow-md w-full"
+  >
+    <div className="flex items-center gap-6 text-black text-xl md:text-2xl font-semibold">
+      <div className="bg-white p-4 rounded-lg shadow-sm flex items-center justify-center">
+        {React.cloneElement(item.icon, {
+          className: "w-9 h-9 text-black",
+        })}
+      </div>
+      <span>{item.text}</span>
+    </div>
+    <ChevronRight className="w-8 h-8 text-gray-400" />
+  </button>
+))}
 
           {/* 🔹 Botón condicional según el rol */}
           {user?.role === "passenger" ? (
