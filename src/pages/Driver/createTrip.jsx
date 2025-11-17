@@ -47,7 +47,7 @@ export default function CreateTrip() {
 
 const handleChange = (e) => {
   const { name, value, coords } = e.target;
-
+  
   setTrip((prev) => ({
     ...prev,
     [name]: value,
@@ -95,6 +95,8 @@ const handleChange = (e) => {
     return;
   }
   console.log("Trip being sent:", trip);
+  const selectedDate = new Date(trip.departureTime);
+  const departureCol = new Date(selectedDate.getTime() - 5 * 60 * 60 * 1000);
 
   try {
   const res = await fetch(`${API_URL}/trips`, {
@@ -103,28 +105,28 @@ const handleChange = (e) => {
     "Content-Type": "application/json",
     Authorization: `Bearer ${token}`,
   },
-  body: JSON.stringify({
-    ...trip,
-    startCoords: trip.startCoords,
-    endCoords: trip.endCoords,
-    seats: Number(trip.seats),
-    price: Number(trip.price),
-    driver: fullUser?._id || fullUser?.id,
-  }),
+
+body: JSON.stringify({
+  ...trip,
+  departureTime: departureCol.toISOString(),
+  startCoords: trip.startCoords,
+  endCoords: trip.endCoords,
+  seats: Number(trip.seats),
+  price: Number(trip.price),
+  driver: fullUser?._id || fullUser?.id,
+})
+
 });
-
-
-
   const data = await res.json();
 
   if (res.ok) {
     // 🟢 Mostrar popup con datos del viaje
     setTripData({
       destination: data.endPoint,
-      time: new Date(data.departureTime).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      time: new Date(
+      new Date(data.departureTime).getTime() - 5 * 3600 * 1000
+      ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+
       price: data.price,
       driver: fullUser?.name || "Driver Name",
     });
