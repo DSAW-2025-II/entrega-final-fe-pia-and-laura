@@ -82,7 +82,7 @@ const statusStyles = {
   declined: "bg-[#F59739] text-white",
 };
 
-export function ReservationsCard({ reservations, currentUser, onStatusChange }) {
+export function ReservationsCard({ reservations, currentUser, onStatusChange, getId }) {
   const [open, setOpen] = useState(false);
 
   const currentId = currentUser?._id || currentUser?.id || null;
@@ -221,10 +221,11 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange }) 
           {/* DRIVER ACTIONS */}
           {isDriver && reservations.status === "pending" && (
             <>
+            
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 whileHover={{ scale: 1.03 }}
-                onClick={() => onStatusChange(reservations._id || reservations.id, "accepted")}
+                onClick={() => onStatusChange(getId(reservations), "accepted")}
                 className="w-full px-6 py-3 rounded-xl bg-white text-emerald-600 font-semibold mb-3 shadow"
               >
                 Accept
@@ -336,30 +337,43 @@ export default function ReservationsPage() {
      🔄 UPDATE STATUS (Driver: accept / decline)
   ============================================ */
   const handleStatusChange = async (id, newStatus) => {
-    try {
-      await fetch(`${API_URL}/reservations/status/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
+  if (!id) {
+    console.error("❌ No ID provided to update status");
+    return;
+  }
 
-      // Actualizar UI sin volver a llamar al backend
-      setReservations((prev) => ({
-        today: prev.today.map((r) =>
-          r._id === id ? { ...r, status: newStatus } : r
-        ),
-        tomorrow: prev.tomorrow.map((r) =>
-          r._id === id ? { ...r, status: newStatus } : r
-        ),
-      }));
+  try {
+    const res = await fetch(`${API_URL}/reservations/status/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ status: newStatus }),
+    });
 
-    } catch (err) {
-      console.error("❌ Error updating status:", err);
+    const data = await res.json();
+    console.log("🔄 Status updated response:", data);
+
+    if (!res.ok) {
+      throw new Error(data.message || "Error updating reservation");
     }
-  };
+
+    // 🔥 Actualiza hoy y mañana
+    setReservations((prev) => ({
+      today: prev.today.map((r) =>
+        getId(r) === id ? { ...r, status: newStatus } : r
+      ),
+      tomorrow: prev.tomorrow.map((r) =>
+        getId(r) === id ? { ...r, status: newStatus } : r
+      ),
+    }));
+
+  } catch (err) {
+    console.error("❌ Error updating status:", err);
+  }
+};
+  const getId = (r) => r?._id || r?.id || r?.reservationId || null;
 
 
   /* ===========================================
@@ -428,6 +442,7 @@ export default function ReservationsPage() {
                       reservations={res}
                       currentUser={user}
                       onStatusChange={handleStatusChange}
+                      getId={getId}
                     />
                   ))}
                 </div>
@@ -447,6 +462,7 @@ export default function ReservationsPage() {
                       reservations={res}
                       currentUser={user}
                       onStatusChange={handleStatusChange}
+                      getId={getId}
                     />
                   ))}
                 </div>
