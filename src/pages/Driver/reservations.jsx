@@ -393,7 +393,7 @@ export default function ReservationsPage() {
         {reservations.today && reservations.today.length > 0 ? (
           <div className="flex flex-col gap-4 items-center">
             {reservations.today.map((res) => (
-        <reservationsCard
+        <ReservationsCard
           key={res._id || res.id}
           reservations={res}
           currentUser={user}
@@ -415,7 +415,7 @@ export default function ReservationsPage() {
         {reservations.tomorrow && reservations.tomorrow.length > 0 ? (
           <div className="flex flex-col gap-4 items-center">
             {reservations.tomorrow.map((res) => (
-          <reservationsCard
+          <ReservationsCard
             key={res._id || res.id}
             reservations={res}
             currentUser={user}
