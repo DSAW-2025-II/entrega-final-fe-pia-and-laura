@@ -233,7 +233,7 @@ export function ReservationsCard({ reservations, currentUser, onStatusChange }) 
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 whileHover={{ scale: 1.03 }}
-                onClick={() => onStatusChange(reservations._id || reservations.id, "declined")}
+                onClick={() => onStatusChange(getId(reservations), "declined")}
                 className="w-full px-6 py-3 rounded-xl bg-orange-400 font-semibold text-white shadow"
               >
                 Decline
