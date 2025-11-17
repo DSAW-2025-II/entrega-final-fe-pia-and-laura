@@ -75,7 +75,6 @@ const AccountIcon = ({filled}) => (
 
 
 /* ==== CARD COMPONENT ==== */
-// === ESTILOS PARA EL ESTADO DE LA RESERVA ===
 const statusStyles = {
   pending: "bg-[#374151] text-white",
   accepted: "bg-[#10B981] text-white",
@@ -84,6 +83,7 @@ const statusStyles = {
 
 export function ReservationsCard({ reservations, currentUser, onStatusChange, getId }) {
   const [open, setOpen] = useState(false);
+  console.log("RESERVATION FULL DATA 👉", reservations);
   console.log("🎯 Pickup Points:", reservations.pickupPoints);
   const currentId = currentUser?._id || currentUser?.id || null;
   const driverId = reservations?.driver?._id || reservations?.driver?.id || null;
