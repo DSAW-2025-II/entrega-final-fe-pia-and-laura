@@ -266,154 +266,216 @@
 </div>
 
 <script>
-  // Initialize variables
+ /* frontend.js — use with your existing HTML (replace previous script) */
+/* Backend base URL (your Render deployment) */
+const API_BASE = "https://entrega-final-be-pia-and-laura-1.onrender.com";
+
 let currentUser = null;
 let mapInstance = null;
-let routeLine = null; // To keep track of the route polyline
+let routeLine = null;        // for the drawn route
+let editingRideId = null;    // if editing a ride, store id here
 
-// Dummy destinations object for map markers
+// Dummy destinations object for map markers (unchanged)
 const destinations = {
-  "Campus": { name: "Campus", lat: 4.860, lng: -74.030 },
-  // Add more destinations as needed
+  "Campus": { name: "Campus", lat: 4.860, lng: -74.030 }
 };
 
-// Your OpenRoute Service API key (replace with your actual key)
+// OpenRoute API key (unchanged)
 const openRouteApiKey = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImExZTdkNzdiMDJjNTRmNzFiYjRlMmUwMTU4MTY0ZjdkIiwiaCI6Im11cm11cjY0In0=';
 
+/* ---------- DOMContentLoaded: attach handlers ---------- */
 window.addEventListener('DOMContentLoaded', () => {
-  // Existing button handlers...
+  // Buttons open/close
   document.getElementById('signup-btn').onclick = () => showSignup(true);
   document.getElementById('login-btn').onclick = () => showLogin(true);
   document.getElementById('closeSignup').onclick = () => showSignup(false);
   document.getElementById('closeLogin').onclick = () => showLogin(false);
 
-  document.getElementById('role').addEventListener('change', e => {
-    document.getElementById('driverFields').style.display = e.target.value === 'driver' ? 'block' : 'none';
-  });
+  // Role select visibility
+  const roleSelect = document.getElementById('role');
+  if (roleSelect) {
+    roleSelect.addEventListener('change', e => {
+      document.getElementById('driverFields').style.display = e.target.value === 'driver' ? 'block' : 'none';
+    });
+  }
 
-  // Signup form
-  document.getElementById('signupForm').onsubmit = e => {
+  // Signup form (calls backend)
+  const signupForm = document.getElementById('signupForm');
+  if (signupForm) signupForm.onsubmit = async (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value.trim().toLowerCase();
     const role = document.getElementById('role').value;
-    if (!email || !role) { alert('Please complete required fields.'); return; }
+    if (!email || !role) return alert('Please complete required fields.');
 
-    const users = JSON.parse(localStorage.getItem('sw_users') || "{}");
-    if (users[email]) {
-      alert('User already exists. Please login.');
-      return;
-    }
-    const newUser = {
-      firstName: document.getElementById('firstName').value.trim(),
-      lastName: document.getElementById('lastName').value.trim(),
-      universityId: document.getElementById('universityId').value.trim(),
-      phone: document.getElementById('phoneNumber').value.trim(),
+    const payload = {
+      name: (document.getElementById('firstName').value || "") + " " + (document.getElementById('lastName').value || ""),
       email,
       password: document.getElementById('password').value,
       role
     };
-    users[email] = newUser;
-    localStorage.setItem('sw_users', JSON.stringify(users));
-    alert('Registered! You can log in now.');
-    showSignup(false);
+
+    try {
+      const res = await fetch(`${API_BASE}/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json();
+      if (!res.ok) return alert(json.message || 'Signup failed.');
+      alert('Registered! You can log in now.');
+      showSignup(false);
+    } catch (err) {
+      console.error('Signup error', err);
+      alert('Network error during signup.');
+    }
   };
 
-  // Login form
-  document.getElementById('loginForm').onsubmit = e => {
+  // Login form (calls backend)
+  const loginForm = document.getElementById('loginForm');
+  if (loginForm) loginForm.onsubmit = async (e) => {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value.trim().toLowerCase();
     const pwd = document.getElementById('loginPassword').value;
-    const users = JSON.parse(localStorage.getItem('sw_users') || "{}");
-    if (!users[email] || users[email].password !== pwd) {
-      alert('Invalid credentials.');
-      return;
+    try {
+      const res = await fetch(`${API_BASE}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: pwd })
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        return alert(json.message || 'Login failed.');
+      }
+
+      // Expect backend to return user object (if your server returns different shape, adjust)
+      currentUser = json.user || { email, name: json.name, role: json.role };
+      // keep a tiny session locally so page reloads keep the user
+      localStorage.setItem('sw_session', JSON.stringify({ email: currentUser.email }));
+      showLogin(false);
+      showMain();
+    } catch (err) {
+      console.error('Login error', err);
+      alert('Network error during login.');
     }
-    currentUser = users[email];
-    localStorage.setItem('sw_session', JSON.stringify({ email }));
-    showLogin(false);
-    showMain();
   };
 
-  // Forgot password modal
+  // Forgot password UI (attempt a backend reset; fallback message if endpoint missing)
   const forgotModal = document.getElementById("forgotPasswordContainer");
-  document.getElementById("openForgotPassword").onclick = () => {
+  const openForgotBtn = document.getElementById("openForgotPassword");
+  const closeForgotBtn = document.getElementById("closeForgotPassword");
+  if (openForgotBtn) openForgotBtn.onclick = () => {
     forgotModal.style.display = "block";
     forgotModal.setAttribute("aria-hidden", "false");
   };
-  document.getElementById("closeForgotPassword").onclick = () => {
+  if (closeForgotBtn) closeForgotBtn.onclick = () => {
     forgotModal.style.display = "none";
     forgotModal.setAttribute("aria-hidden", "true");
   };
-  document.getElementById("forgotPasswordForm").onsubmit = e => {
+  const forgotForm = document.getElementById("forgotPasswordForm");
+  if (forgotForm) forgotForm.onsubmit = async (e) => {
     e.preventDefault();
     const email = document.getElementById("forgotEmail").value.trim().toLowerCase();
     const newPass = document.getElementById("newPassword").value.trim();
     const confirmPass = document.getElementById("confirmPassword").value.trim();
-    if (!email || !newPass || !confirmPass) {
-      alert("All fields are required.");
-      return;
+    if (!email || !newPass || !confirmPass) return alert("All fields are required.");
+    if (newPass !== confirmPass) return alert("Passwords do not match!");
+
+    // try calling backend reset endpoint (if implemented)
+    try {
+      const res = await fetch(`${API_BASE}/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: newPass })
+      });
+      const json = await res.json();
+      if (res.ok) {
+        alert("Password reset successfully! Please log in.");
+        forgotModal.style.display = "none";
+        showLogin(true);
+      } else {
+        // if backend doesn't have reset endpoint, show helpful message
+        alert(json.message || "Reset endpoint not available on server. Contact admin or implement /reset-password.");
+      }
+    } catch (err) {
+      console.warn("Reset request failed:", err);
+      alert("Network error — could not reset password. If your backend doesn't support resets you can implement it server-side.");
     }
-    if (newPass !== confirmPass) {
-      alert("Passwords do not match!");
-      return;
-    }
-    const users = JSON.parse(localStorage.getItem("sw_users") || "{}");
-    if (!users[email]) {
-      alert("No user found with that email.");
-      return;
-    }
-    users[email].password = newPass;
-    localStorage.setItem("sw_users", JSON.stringify(users));
-    alert("Password reset successfully! Please log in.");
-    document.getElementById("forgotPasswordContainer").style.display = "none";
-    document.getElementById("forgotPasswordContainer").setAttribute("aria-hidden", "true");
-    showLogin(true);
   };
 
-  // Load session if exists
+  // Session load
   const session = JSON.parse(localStorage.getItem('sw_session') || "null");
   if (session && session.email) {
-    const users = JSON.parse(localStorage.getItem('sw_users') || "{}");
-    if (users[session.email]) {
-      currentUser = users[session.email];
-      showMain();
+    // fetch user from backend (if endpoint exists); else use session email only
+    try {
+      const res = await fetch(`${API_BASE}/user/${encodeURIComponent(session.email)}`);
+      if (res.ok) {
+        const json = await res.json();
+        currentUser = json.user || { email: session.email };
+      } else {
+        // fallback minimal session
+        currentUser = { email: session.email };
+      }
+    } catch (err) {
+      currentUser = { email: session.email };
     }
+    showMain();
   }
 
-  // Driver create ride
-  document.getElementById('driverCreateRideForm').onsubmit = e => {
+  // Driver create/edit ride form submit
+  const driverForm = document.getElementById('driverCreateRideForm');
+  if (driverForm) driverForm.onsubmit = async (e) => {
     e.preventDefault();
-    if (!currentUser || currentUser.role !== 'driver') { alert('Only drivers can create rides.'); return; }
-    const ride = {
-      id: 'ride_' + Date.now(),
-      ownerEmail: currentUser.email,
-      ownerName: currentUser.firstName + ' ' + currentUser.lastName,
+    if (!currentUser || currentUser.role !== 'driver') {
+      return alert('Only drivers can create rides.');
+    }
+
+    // gather ride data
+    const rideData = {
+      driverId: currentUser.email || currentUser.id,
       vehicle: document.getElementById('driverVehicle').value.trim(),
-      date: document.getElementById('driverDate').value.trim(),
-      time: document.getElementById('driverTime').value.trim(),
+      date: document.getElementById('driverDate').value,
+      time: document.getElementById('driverTime').value,
       departure: document.getElementById('driverDeparture').value.trim(),
       arrival: document.getElementById('driverArrival').value.trim(),
       seats: parseInt(document.getElementById('driverSeats').value, 10),
-      tarriff: document.getElementById('driverTarriff').value,
+      tariff: document.getElementById('driverTarriff').value,
       createdAt: new Date().toISOString()
     };
-    const allRides = JSON.parse(localStorage.getItem('sw_rides') || "[]");
-    allRides.push(ride);
-    localStorage.setItem('sw_rides', JSON.stringify(allRides));
-    alert('Ride created!');
-    document.getElementById('driverCreateRideForm').reset();
-    loadDriverRides();
-  };
 
-  // Load rides for driver
-  window.addEventListener("DOMContentLoaded", () => {
-    if (currentUser && currentUser.role === 'driver') {
+    try {
+      if (editingRideId) {
+        // send PUT to update existing ride
+        const res = await fetch(`${API_BASE}/ride/${editingRideId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(rideData)
+        });
+        const json = await res.json();
+        if (!res.ok) return alert(json.message || "Failed to update ride.");
+        alert('Ride updated!');
+        editingRideId = null;
+      } else {
+        // create new ride
+        const res = await fetch(`${API_BASE}/ride/create`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(rideData)
+        });
+        const json = await res.json();
+        if (!res.ok) return alert(json.message || "Failed to create ride.");
+        alert('Ride created!');
+      }
+
+      driverForm.reset();
       loadDriverRides();
+    } catch (err) {
+      console.error('Ride create/edit error', err);
+      alert('Network error while creating/updating ride.');
     }
-  });
+  };
 });
 
-// Show/hide functions
+/* ---------- UI helper functions ---------- */
 function showSignup(show) {
   document.getElementById('signupFormContainer').style.display = show ? 'block' : 'none';
   document.getElementById('signupFormContainer').setAttribute('aria-hidden', !show);
@@ -423,27 +485,40 @@ function showLogin(show) {
   document.getElementById('loginFormContainer').setAttribute('aria-hidden', !show);
 }
 
-// Main UI setup
+/* ---------- Main UI after login ---------- */
 function showMain() {
   document.getElementById('mainContent').style.display = 'block';
   document.getElementById('authButtons').style.display = 'none';
-  document.getElementById('userName').innerText = currentUser ? (currentUser.firstName || currentUser.email) : 'Guest';
+  document.getElementById('userName').innerText = currentUser ? (currentUser.firstName || currentUser.name || currentUser.email) : 'Guest';
   document.getElementById('userRole').innerText = currentUser ? currentUser.role : '-';
 
   const optionsContainer = document.getElementById('optionsContainer');
   optionsContainer.innerHTML = '';
 
-  // Home button
+  // Home
   const homeBtn = document.createElement('button');
   homeBtn.innerText = 'Home';
   homeBtn.onclick = () => showSection('home');
   optionsContainer.appendChild(homeBtn);
 
-  // Role toggle button
+  // Role toggle (local only — also synced to backend if you implement endpoint later)
   const toggleBtn = document.createElement('button');
   toggleBtn.innerText = currentUser.role === 'driver' ? 'Switch to Passenger' : 'Switch to Driver';
-  toggleBtn.onclick = () => {
-    toggleUserRole();
+  toggleBtn.onclick = async () => {
+    // update locally
+    currentUser.role = currentUser.role === 'driver' ? 'passenger' : 'driver';
+    // optionally update backend user object (if endpoint exists)
+    try {
+      await fetch(`${API_BASE}/user/${encodeURIComponent(currentUser.email)}/role`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: currentUser.role })
+      });
+    } catch (err) {
+      // ignore network errors for role flip
+    }
+    alert(`Role changed to ${currentUser.role}`);
+    showMain();
   };
   optionsContainer.appendChild(toggleBtn);
 
@@ -457,7 +532,7 @@ function showMain() {
     myRidesBtn.innerText = 'My Rides';
     myRidesBtn.onclick = loadDriverRides;
     optionsContainer.appendChild(myRidesBtn);
-  } else if (currentUser.role === 'passenger') {
+  } else {
     const viewRidesBtn = document.createElement('button');
     viewRidesBtn.innerText = 'View Available Rides';
     viewRidesBtn.onclick = loadRidesForPassenger;
@@ -482,36 +557,21 @@ function showMain() {
   showSection('home');
 }
 
-function toggleUserRole() {
-  if (!currentUser) return;
-  currentUser.role = currentUser.role === 'driver' ? 'passenger' : 'driver';
-
-  const users = JSON.parse(localStorage.getItem('sw_users') || '{}');
-  users[currentUser.email] = currentUser;
-  localStorage.setItem('sw_users', JSON.stringify(users));
-
-  alert(`Role changed to ${currentUser.role}`);
-  showMain();
-}
-
+/* ---------- Change section ---------- */
 function showSection(sectionId) {
-  const mainContent = document.getElementById('mainContent');
   const driverSection = document.getElementById('driverSection');
   const passengerSection = document.getElementById('passengerSection');
   const travel = document.getElementById('travel');
   const reserve = document.getElementById('reserve');
 
-  // hide all sections
-  driverSection.style.display = 'none';
-  passengerSection.style.display = 'none';
-  travel.style.display = 'none';
-  reserve.style.display = 'none';
+  // hide all
+  [driverSection, passengerSection, travel, reserve].forEach(s => s && (s.style.display = 'none'));
 
   if (sectionId === 'home') {
     if (currentUser.role === 'driver') {
       driverSection.style.display = 'block';
       loadDriverRides();
-    } else if (currentUser.role === 'passenger') {
+    } else {
       passengerSection.style.display = 'block';
       loadRidesForPassenger();
     }
@@ -524,6 +584,7 @@ function showSection(sectionId) {
   if (sectionId === 'reserve') { reserve.style.display = 'block'; }
 }
 
+/* ---------- Logout ---------- */
 function logout() {
   currentUser = null;
   localStorage.removeItem('sw_session');
@@ -532,57 +593,157 @@ function logout() {
   alert('Logged out.');
 }
 
-// Load driver rides
-function loadDriverRides() {
-  if (!currentUser || currentUser.role !== 'driver') return;
-  const allRides = JSON.parse(localStorage.getItem('sw_rides') || "[]");
-  const myRides = allRides.filter(r => r.ownerEmail === currentUser.email);
+/* ---------- Driver rides (fetch from backend) ---------- */
+async function loadDriverRides() {
+  if (!currentUser || !currentUser.email) return;
+  try {
+    const res = await fetch(`${API_BASE}/rides/driver/${encodeURIComponent(currentUser.email)}`);
+    if (!res.ok) {
+      console.warn('Failed to fetch driver rides');
+      document.getElementById('driverRidesList').innerHTML = '<p>Unable to load rides.</p>';
+      return;
+    }
+    const data = await res.json();
+    renderDriverRides(data || []);
+  } catch (err) {
+    console.error('loadDriverRides error', err);
+    document.getElementById('driverRidesList').innerHTML = '<p>Network error.</p>';
+  }
+}
+
+function renderDriverRides(rides) {
   const container = document.getElementById('driverRidesList');
   container.innerHTML = '';
-  if (myRides.length === 0) container.innerHTML = '<p>No rides yet.</p>';
-  myRides.forEach(r => {
+  if (!Array.isArray(rides) || rides.length === 0) {
+    container.innerHTML = '<p>No rides yet.</p>';
+    return;
+  }
+
+  rides.forEach(r => {
     const div = document.createElement('div');
     div.className = 'ride-item';
     div.innerHTML = `
-      <strong>${r.vehicle}</strong><br/>
-      <strong>Time:</strong> ${r.time}<br/>
-      <strong>Pickup Point:</strong> ${r.departure}<br/>
-      <strong>Arrival Point:</strong> ${r.arrival}<br/>
-      <strong>Available Seats:</strong> ${r.seats}<br/>
-      <strong>Tariffs:</strong> ${r.tariff}<br/>
-      Created: ${new Date(r.createdAt).toLocaleString()}
+      <strong>${escapeHtml(r.vehicle)}</strong><br/>
+      <strong>Date:</strong> ${r.date || 'N/A'} ${r.time || ''}<br/>
+      <strong>Pickup:</strong> ${escapeHtml(r.departure || 'N/A')}<br/>
+      <strong>Arrival:</strong> ${escapeHtml(r.arrival || 'N/A')}<br/>
+      <strong>Seats:</strong> ${r.seats ?? 'N/A'}<br/>
+      <strong>Tariff:</strong> ${r.tariff ?? r.tarriff ?? 'N/A'}<br/>
+      Created: ${new Date(r.createdAt || Date.now()).toLocaleString()}
     `;
+
+    // Edit button
+    const editBtn = document.createElement('button');
+    editBtn.textContent = 'Edit';
+    editBtn.onclick = () => beginEditRide(r);
+    div.appendChild(editBtn);
+
+    // Cancel/Delete button
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.style.background = 'red';
+    cancelBtn.style.color = 'white';
+    cancelBtn.onclick = () => cancelRide(r.id);
+    div.appendChild(cancelBtn);
+
     container.appendChild(div);
   });
 }
 
-// Load passenger rides
-function loadRidesForPassenger() {
-  const allRides = JSON.parse(localStorage.getItem('sw_rides') || "[]");
+/* ---------- Passenger rides (fetch all) ---------- */
+async function loadRidesForPassenger() {
+  try {
+    const res = await fetch(`${API_BASE}/rides/all`);
+    if (!res.ok) {
+      document.getElementById('ridesList').innerHTML = '<p>Unable to load rides.</p>';
+      return;
+    }
+    const data = await res.json();
+    renderAvailableRides(data || []);
+  } catch (err) {
+    console.error('loadRidesForPassenger error', err);
+    document.getElementById('ridesList').innerHTML = '<p>Network error.</p>';
+  }
+}
+
+function renderAvailableRides(rides) {
   const container = document.getElementById('ridesList');
   container.innerHTML = '';
-  if (allRides.length === 0) { container.innerHTML = '<p>No rides available yet.</p>'; return; }
-  allRides.sort((a,b) => new Date(a.time) - new Date(b.time));
-  allRides.forEach(r => {
+  if (!Array.isArray(rides) || rides.length === 0) {
+    container.innerHTML = '<p>No rides available yet.</p>';
+    return;
+  }
+  rides.sort((a,b) => new Date(a.time || a.createdAt) - new Date(b.time || b.createdAt));
+  rides.forEach(r => {
     const div = document.createElement('div');
     div.className = 'ride-item';
     div.innerHTML = `
-      <strong>${r.vehicle}</strong> — by ${r.ownerName}<br/>
-      Time: ${r.time} — Pickup Point: ${r.departure || 'N/A'} — Seats: ${r.seats || 'N/A'}<br/>
-      Distance: ${r.distance || 'N/A'} — Arrival Point: ${r.arrival || 'N/A'}<br/>
-      Tariffs: ${r.tariff || 'N/A'} — Created: ${new Date(r.createdAt).toLocaleString()}
+      <strong>${escapeHtml(r.vehicle)}</strong> — by ${escapeHtml(r.ownerName || r.driverId || 'Driver')}<br/>
+      Time: ${r.time || 'N/A'} — Pickup: ${escapeHtml(r.departure || 'N/A')} — Seats: ${r.seats ?? 'N/A'}<br/>
+      Arrival: ${escapeHtml(r.arrival || 'N/A')} — Tariff: ${r.tariff ?? r.tarriff ?? 'N/A'}<br/>
+      Created: ${new Date(r.createdAt || Date.now()).toLocaleString()}
     `;
+
+    // Reserve button
     const reserveBtn = document.createElement('button');
     reserveBtn.textContent = 'Reserve';
-    reserveBtn.onclick = () => {
-      // TO DO: Implement reserve button functionality
-    };
+    reserveBtn.onclick = () => reserveRide(r.id);
     div.appendChild(reserveBtn);
+
     container.appendChild(div);
   });
 }
 
-// Initialize map if needed
+/* ---------- Reserve ride (passenger) ---------- */
+async function reserveRide(rideId) {
+  if (!currentUser || !currentUser.email) return alert('Please login to reserve.');
+  try {
+    const res = await fetch(`${API_BASE}/ride/${rideId}/reserve`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ passengerId: currentUser.email })
+    });
+    const json = await res.json();
+    if (!res.ok) return alert(json.message || 'Failed to reserve ride.');
+    alert('Ride reserved!');
+    loadRidesForPassenger();
+  } catch (err) {
+    console.error('reserveRide error', err);
+    alert('Network error while reserving.');
+  }
+}
+
+/* ---------- Cancel ride (driver) ---------- */
+async function cancelRide(rideId) {
+  if (!confirm('Are you sure you want to cancel this ride?')) return;
+  try {
+    const res = await fetch(`${API_BASE}/ride/${rideId}`, { method: "DELETE" });
+    const json = await res.json();
+    if (!res.ok) return alert(json.message || 'Failed to cancel ride.');
+    alert('Ride canceled.');
+    loadDriverRides();
+  } catch (err) {
+    console.error('cancelRide error', err);
+    alert('Network error while canceling.');
+  }
+}
+
+/* ---------- Edit ride flow ---------- */
+function beginEditRide(ride) {
+  // prefill the form
+  document.getElementById('driverVehicle').value = ride.vehicle || '';
+  if (ride.date) document.getElementById('driverDate').value = ride.date;
+  if (ride.time) document.getElementById('driverTime').value = ride.time;
+  document.getElementById('driverDeparture').value = ride.departure || '';
+  document.getElementById('driverArrival').value = ride.arrival || '';
+  document.getElementById('driverSeats').value = ride.seats ?? '';
+  document.getElementById('driverTarriff').value = ride.tariff ?? ride.tarriff ?? '';
+  editingRideId = ride.id;
+  showSection('driverSection');
+  alert('Edit the ride and press Create Ride to submit changes.');
+}
+
+/* ---------- Map + routing helpers (unchanged) ---------- */
 function initMapIfNeeded() {
   if (mapInstance) return;
   mapInstance = L.map('map', { zoomControl: true }).setView([4.86, -74.03], 11);
@@ -591,44 +752,32 @@ function initMapIfNeeded() {
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(mapInstance);
 
-  // Add markers for destinations
   Object.keys(destinations).forEach(key => {
     const d = destinations[key];
     L.marker([d.lat, d.lng]).addTo(mapInstance).bindPopup(d.name);
   });
 }
 
-// Update map view based on selects
 function updateMapFromSelects() {
   initMapIfNeeded();
-  const destVal = document.getElementById('dest-input').value;
-  const arrivalVal = document.getElementById('arrival-input').value;
-
+  const destVal = document.getElementById('dest-input') ? document.getElementById('dest-input').value : '';
+  const arrivalVal = document.getElementById('arrival-input') ? document.getElementById('arrival-input').value : '';
   const points = [];
-  if (destVal !== '-' && destinations[destVal]) points.push([destinations[destVal].lat, destinations[destVal].lng]);
-  if (arrivalVal !== '-' && destinations[arrivalVal]) points.push([destinations[arrivalVal].lat, destinations[arrivalVal].lng]);
+  if (destVal && destinations[destVal]) points.push([destinations[destVal].lat, destinations[destVal].lng]);
+  if (arrivalVal && destinations[arrivalVal]) points.push([destinations[arrivalVal].lat, destinations[arrivalVal].lng]);
 
-  if (points.length === 0) {
-    mapInstance.setView([4.86, -74.03], 11);
-  } else if (points.length === 1) {
-    mapInstance.setView(points[0], 13);
-  } else {
-    const bounds = L.latLngBounds(points);
-    mapInstance.fitBounds(bounds.pad(0.5));
-  }
+  if (points.length === 0) mapInstance.setView([4.86, -74.03], 11);
+  else if (points.length === 1) mapInstance.setView(points[0], 13);
+  else mapInstance.fitBounds(L.latLngBounds(points).pad(0.5));
 }
 
-// Geocode location using Nominatim
 async function geocodeLocation(location) {
   const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`;
   try {
     const response = await fetch(url);
     const data = await response.json();
     if (data && data.length > 0) {
-      return {
-        lat: parseFloat(data[0].lat),
-        lng: parseFloat(data[0].lon)
-      };
+      return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
     } else {
       alert('Location not found: ' + location);
       return null;
@@ -640,13 +789,9 @@ async function geocodeLocation(location) {
   }
 }
 
-// Draw route between start and end coordinates
 async function drawRoute(startCoords, endCoords) {
   const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${openRouteApiKey}`;
-  const body = {
-    coordinates: [startCoords, endCoords]
-  };
-
+  const body = { coordinates: [startCoords, endCoords] };
   try {
     const response = await fetch(url, {
       method: 'POST',
@@ -656,40 +801,39 @@ async function drawRoute(startCoords, endCoords) {
     const data = await response.json();
     if (data.features && data.features.length > 0) {
       const routeCoords = data.features[0].geometry.coordinates;
-      const latLngs = routeCoords.map(coord => [coord[1], coord[0]]); // flip [lng, lat]
-
-      // Remove existing route if any
-      if (routeLine) {
-        mapInstance.removeLayer(routeLine);
-      }
-
-      // Draw new route
+      const latLngs = routeCoords.map(c => [c[1], c[0]]);
+      if (routeLine) mapInstance.removeLayer(routeLine);
       routeLine = L.polyline(latLngs, { color: 'blue', weight: 4 }).addTo(mapInstance);
       mapInstance.fitBounds(routeLine.getBounds());
+    } else {
+      alert('No route found.');
     }
   } catch (err) {
     console.error('Error fetching route:', err);
-    alert('Failed to fetch route. Please check your API key and network.');
+    alert('Failed to fetch route. Check API key and network.');
   }
 }
 
-// Start travel route: geocode pickup and arrival, then draw route
 async function startTravelRoute() {
   const pickup = document.getElementById("dest-input").value;
   const arrival = document.getElementById("arrival-input").value;
-
-  if (!pickup || !arrival) {
-    alert("Please enter both pickup and arrival locations.");
-    return;
-  }
-
+  if (!pickup || !arrival) return alert("Please enter both pickup and arrival locations.");
   const start = await geocodeLocation(pickup);
   const end = await geocodeLocation(arrival);
-
   if (!start || !end) return;
+  await drawRoute([start.lng, start.lat], [end.lng, end.lat]);
+}
 
-  await drawRoute([start.lat, start.lng], [end.lat, end.lng]);
+/* ---------- small helpers ---------- */
+function escapeHtml(str = '') {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 </script>
 </body>
+
 </html>
