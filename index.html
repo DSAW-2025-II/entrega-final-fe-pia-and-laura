@@ -266,9 +266,7 @@
 </div>
 
 <script>
- /* frontend.js — use with your existing HTML (replace previous script) */
-/* Backend base URL (your Render deployment) */
-const API_BASE = "https://entrega-final-be-pia-and-laura-1.onrender.com";
+ const API_BASE = "https://entrega-final-be-pia-and-laura-1.onrender.com";
 
 let currentUser = null;
 let mapInstance = null;
@@ -402,17 +400,16 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Session load
+ // Session load
+async function loadSession() {
   const session = JSON.parse(localStorage.getItem('sw_session') || "null");
   if (session && session.email) {
-    // fetch user from backend (if endpoint exists); else use session email only
     try {
       const res = await fetch(`${API_BASE}/user/${encodeURIComponent(session.email)}`);
       if (res.ok) {
         const json = await res.json();
         currentUser = json.user || { email: session.email };
       } else {
-        // fallback minimal session
         currentUser = { email: session.email };
       }
     } catch (err) {
@@ -420,7 +417,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     showMain();
   }
-
+}
   // Driver create/edit ride form submit
   const driverForm = document.getElementById('driverCreateRideForm');
   if (driverForm) driverForm.onsubmit = async (e) => {
@@ -833,7 +830,7 @@ function escapeHtml(str = '') {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 }
+
 </script>
 </body>
-
 </html>
