@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sabana Wheels — Demo</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #032567;
+      margin: 0;
+      padding: 20px;
+      color: #eee;
+    }
+    header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: white;
+      padding: 10px 20px;
+      position: relative;
+    }
+    header h1 {
+      font-size: 2.4em;
+      margin: 0;
+      line-height: 1;
+    }
+    header h2 {
+      font-size: 1.2em;
+      margin: 0;
+      opacity: .9;
+    }
+    /* Auth buttons container */
+    .auth-buttons {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+    }
+    .auth-buttons button {
+      margin-left: 10px;
+      padding: 6px 12px;
+      background-color: #53AAE4;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .auth-buttons button:hover { background-color: #4394c8; }
+
+    /* Profile button styling */
+    #profileBtn {
+      background-color: transparent;
+      padding: 5px 10px;
+      border: 1px solid white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #profileBtn:hover { background-color: #4394c8; }
+
+    section { display: none; color: #000; }
+    section.active { display: block; }
+
+    /* Forms */
+    form { display:block; }
+    input, select, button, textarea {
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
+    #signupFormContainer, #loginFormContainer {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      color: #000;
+      padding: 16px;
+      border-radius: 8px;
+      width: 320px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.3);
+    }
+    #signupFormContainer button.closeBtn, #loginFormContainer button.closeBtn {
+      float: right;
+      background: transparent;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #signupFormContainer input, #signupFormContainer select,
+    #loginFormContainer input {
+      display:block;
+      width: 100%;
+      margin: 8px 0;
+      padding: 8px;
+    }
+
+    /* Main content */
+    #mainContent { display:none; margin-top: 18px; }
+    .card {
+      background:#8bc3e6;
+      color:#000;
+      padding:30px;
+      border-radius:8px;
+      margin-bottom:12px;
+    }
+
+    #optionsContainer { margin: 12px 0; }
+    #optionsContainer button { margin-right:8px; margin-bottom:8px; padding:8px 12px; }
+
+    /* Rides lists */
+    .ride-item { background:#f9f9f9; padding:10px; border-radius:6px; margin-bottom:10px; border:1px solid #ddd; }
+
+    /* Map */
+    #map { height: 400px; margin-top: 12px; border-radius:8px; }
+
+    /* small screens */
+    @media (max-width:600px) {
+      #signupFormContainer, #loginFormContainer { width: 90%; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Sabana</h1>
+  <h1>Wheels</h1>
+  <div class="auth-buttons" id="authButtons">
+    <button id="login-btn">Login</button>
+    <button id="signup-btn">Sign Up</button>
+  </div>
+</header>
+
+<!-- Sign-up form container -->
+<div id="signupFormContainer" aria-hidden="true">
+  <form id="signupForm" class="card">
+    <button type="button" class="closeBtn" id="closeSignup">✕</button>
+    <h3>Register</h3>
+
+    <label for="role">Are you a driver or passenger?</label>
+    <select id="role" required>
+      <option value="">Select role</option>
+      <option value="passenger">Passenger</option>
+      <option value="driver">Driver</option>
+    </select>
+
+    <!-- Common fields -->
+    <input type="text" id="firstName" placeholder="First Name" required />
+    <input type="text" id="lastName" placeholder="Last Name" required />
+    <input type="text" id="universityId" placeholder="University ID" required />
+    <input type="tel" id="phoneNumber" placeholder="Phone Number" required />
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Password" required />
+
+    <!-- Driver-specific fields -->
+    <div id="driverFields" style="display:none;">
+      <input type="text" id="placaVehiculo" placeholder="Vehicle Plate" />
+      <label for="fotoVehiculo">Please select a photo of your vehicle:</label>
+      <input type="file" accept="image/*" id="fotoVehiculo" />
+      <input type="number" id="vehicleCapacity" placeholder="Vehicle Capacity" />
+      <label for="fotoSoat">Please select a SOAT photo:</label>
+      <input type="file" accept="image/*" id="fotoSoat" />
+      <input type="text" id="brand" placeholder="Brand" />
+      <input type="text" id="model" placeholder="Model" />
+    </div>
+
+    <button type="submit" id="registerBtn">Register</button>
+  </form>
+</div>
+
+<!-- Login form modal -->
+<div id="loginFormContainer" aria-hidden="true">
+  <form id="loginForm" class="card">
+    <button type="button" class="closeBtn" id="closeLogin">✕</button>
+    <h3>Login</h3>
+    <input type="email" id="loginEmail" placeholder="Email" required />
+    <input type="password" id="loginPassword" placeholder="Password" required />
+    <button type="button" id="openForgotPassword">Forgot Password?</button>
+    <button type="submit">Login</button>
+  </form>
+</div>
+
+<!-- Forgot Password -->
+<div id="forgotPasswordContainer" aria-hidden="true" style="display:none;">
+  <form id="forgotPasswordForm" class="card">
+    <button type="button" class="closeBtn" id="closeForgotPassword">✕</button>
+
+    <h3>Reset Password</h3>
+
+    <input type="email" id="forgotEmail" placeholder="Enter your registered email" required>
+
+    <input type="password" id="newPassword" placeholder="New Password" required>
+    <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+
+    <button type="submit">Reset Password</button>
+  </form>
+</div>
+
+<!-- Main Content -->
+<div id="mainContent">
+  <div class="card">
+    <h3>Welcome, <span id="userName">Guest</span> (<span id="userRole">-</span>)</h3>
+    <div id="optionsContainer"></div>
+  </div>
+
+  <!-- Driver section -->
+  <section id="driverSection" class="card">
+    <h3>Create a Ride (Driver)</h3>
+    <form id="driverCreateRideForm">
+      <input type="text" id="driverVehicle" placeholder="Vehicle Info" required />
+      <input type="date" id="driverDate" required />
+      <input type="time" id="driverTime" required />
+      <input type="text" id="driverDeparture" placeholder="Departure Point" required />
+      <input type="text" id="driverArrival" placeholder="Arrival Point" required />
+      <input type="number" id="driverSeats" placeholder="Available seats" required min="1" />
+      <input type="text" id="driverTarriff" placeholder="Tarriffs Per Passenger" required />
+      <button type="submit">Create Ride</button>
+    </form>
+
+    <div id="driverRidesList">
+      <button type="edit">Edit Ride</button>
+      <button type="cancel">Cancel Ride</button>
+    </div>
+  </section>
+
+  <!-- Passenger section -->
+  <section id="passengerSection" class="card">
+    <h3>Available Rides</h3>
+    <div id="ridesList"></div>
+  </section>
+
+  <!-- Travel section -->
+  <section id="travel" class="card">
+    <h2>Travel</h2>
+    <label for="dest-input">Select Your Pickup Point:</label>
+    <input type="text" id="dest-input" placeholder="Enter Pickup Point" required />
+
+    <br/><br/>
+    <label for="arrival-input">Select your Arrival Point:</label>
+    <input type="text" id="arrival-input" placeholder="Enter Arrival Point" required />
+
+    <div id="map"></div>
+    <br/>
+    <button onclick="startTravelRoute()">Submit Travel</button>
+    <button onclick="showSection('home')">Back to Home</button>
+  </section>
+
+  <!-- Reserve section -->
+  <section id="reserve" class="card">
+    <h2>Reserve</h2>
+    <form id="reservationForm">
+      <label for="dest">Pickup Point:</label>
+      <input type="text" id="dest" placeholder="Enter pickup point" required />
+      <label for="arrival">Arrival Point:</label>
+      <input type="text" id="arrival" placeholder="Enter arrival point" required />
+      <label for="date">Date:</label>
+      <input type="date" id="reserveDate" required />
+      <label for="time">Time:</label>
+      <input type="time" id="reserveTime" required />
+    </form>
+    <button onclick="startTravelRoute()">Submit Travel</button>
+    <button onclick="showSection('home')">Back to Home</button>
+  </section>
+</div>
+
+<script>
+  // Initialize variables
+let currentUser = null;
+let mapInstance = null;
+let routeLine = null; // To keep track of the route polyline
+
+// Dummy destinations object for map markers
+const destinations = {
+  "Campus": { name: "Campus", lat: 4.860, lng: -74.030 },
+  // Add more destinations as needed
+};
+
+// Your OpenRoute Service API key (replace with your actual key)
+const openRouteApiKey = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImExZTdkNzdiMDJjNTRmNzFiYjRlMmUwMTU4MTY0ZjdkIiwiaCI6Im11cm11cjY0In0=';
+
+window.addEventListener('DOMContentLoaded', () => {
+  // Existing button handlers...
+  document.getElementById('signup-btn').onclick = () => showSignup(true);
+  document.getElementById('login-btn').onclick = () => showLogin(true);
+  document.getElementById('closeSignup').onclick = () => showSignup(false);
+  document.getElementById('closeLogin').onclick = () => showLogin(false);
+
+  document.getElementById('role').addEventListener('change', e => {
+    document.getElementById('driverFields').style.display = e.target.value === 'driver' ? 'block' : 'none';
+  });
+
+  // Signup form
+  document.getElementById('signupForm').onsubmit = e => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const role = document.getElementById('role').value;
+    if (!email || !role) { alert('Please complete required fields.'); return; }
+
+    const users = JSON.parse(localStorage.getItem('sw_users') || "{}");
+    if (users[email]) {
+      alert('User already exists. Please login.');
+      return;
+    }
+    const newUser = {
+      firstName: document.getElementById('firstName').value.trim(),
+      lastName: document.getElementById('lastName').value.trim(),
+      universityId: document.getElementById('universityId').value.trim(),
+      phone: document.getElementById('phoneNumber').value.trim(),
+      email,
+      password: document.getElementById('password').value,
+      role
+    };
+    users[email] = newUser;
+    localStorage.setItem('sw_users', JSON.stringify(users));
+    alert('Registered! You can log in now.');
+    showSignup(false);
+  };
+
+  // Login form
+  document.getElementById('loginForm').onsubmit = e => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+    const pwd = document.getElementById('loginPassword').value;
+    const users = JSON.parse(localStorage.getItem('sw_users') || "{}");
+    if (!users[email] || users[email].password !== pwd) {
+      alert('Invalid credentials.');
+      return;
+    }
+    currentUser = users[email];
+    localStorage.setItem('sw_session', JSON.stringify({ email }));
+    showLogin(false);
+    showMain();
+  };
+
+  // Forgot password modal
+  const forgotModal = document.getElementById("forgotPasswordContainer");
+  document.getElementById("openForgotPassword").onclick = () => {
+    forgotModal.style.display = "block";
+    forgotModal.setAttribute("aria-hidden", "false");
+  };
+  document.getElementById("closeForgotPassword").onclick = () => {
+    forgotModal.style.display = "none";
+    forgotModal.setAttribute("aria-hidden", "true");
+  };
+  document.getElementById("forgotPasswordForm").onsubmit = e => {
+    e.preventDefault();
+    const email = document.getElementById("forgotEmail").value.trim().toLowerCase();
+    const newPass = document.getElementById("newPassword").value.trim();
+    const confirmPass = document.getElementById("confirmPassword").value.trim();
+    if (!email || !newPass || !confirmPass) {
+      alert("All fields are required.");
+      return;
+    }
+    if (newPass !== confirmPass) {
+      alert("Passwords do not match!");
+      return;
+    }
+    const users = JSON.parse(localStorage.getItem("sw_users") || "{}");
+    if (!users[email]) {
+      alert("No user found with that email.");
+      return;
+    }
+    users[email].password = newPass;
+    localStorage.setItem("sw_users", JSON.stringify(users));
+    alert("Password reset successfully! Please log in.");
+    document.getElementById("forgotPasswordContainer").style.display = "none";
+    document.getElementById("forgotPasswordContainer").setAttribute("aria-hidden", "true");
+    showLogin(true);
+  };
+
+  // Load session if exists
+  const session = JSON.parse(localStorage.getItem('sw_session') || "null");
+  if (session && session.email) {
+    const users = JSON.parse(localStorage.getItem('sw_users') || "{}");
+    if (users[session.email]) {
+      currentUser = users[session.email];
+      showMain();
+    }
+  }
+
+  // Driver create ride
+  document.getElementById('driverCreateRideForm').onsubmit = e => {
+    e.preventDefault();
+    if (!currentUser || currentUser.role !== 'driver') { alert('Only drivers can create rides.'); return; }
+    const ride = {
+      id: 'ride_' + Date.now(),
+      ownerEmail: currentUser.email,
+      ownerName: currentUser.firstName + ' ' + currentUser.lastName,
+      vehicle: document.getElementById('driverVehicle').value.trim(),
+      date: document.getElementById('driverDate').value.trim(),
+      time: document.getElementById('driverTime').value.trim(),
+      departure: document.getElementById('driverDeparture').value.trim(),
+      arrival: document.getElementById('driverArrival').value.trim(),
+      seats: parseInt(document.getElementById('driverSeats').value, 10),
+      tarriff: document.getElementById('driverTarriff').value,
+      createdAt: new Date().toISOString()
+    };
+    const allRides = JSON.parse(localStorage.getItem('sw_rides') || "[]");
+    allRides.push(ride);
+    localStorage.setItem('sw_rides', JSON.stringify(allRides));
+    alert('Ride created!');
+    document.getElementById('driverCreateRideForm').reset();
+    loadDriverRides();
+  };
+
+  // Load rides for driver
+  window.addEventListener("DOMContentLoaded", () => {
+    if (currentUser && currentUser.role === 'driver') {
+      loadDriverRides();
+    }
+  });
+});
+
+// Show/hide functions
+function showSignup(show) {
+  document.getElementById('signupFormContainer').style.display = show ? 'block' : 'none';
+  document.getElementById('signupFormContainer').setAttribute('aria-hidden', !show);
+}
+function showLogin(show) {
+  document.getElementById('loginFormContainer').style.display = show ? 'block' : 'none';
+  document.getElementById('loginFormContainer').setAttribute('aria-hidden', !show);
+}
+
+// Main UI setup
+function showMain() {
+  document.getElementById('mainContent').style.display = 'block';
+  document.getElementById('authButtons').style.display = 'none';
+  document.getElementById('userName').innerText = currentUser ? (currentUser.firstName || currentUser.email) : 'Guest';
+  document.getElementById('userRole').innerText = currentUser ? currentUser.role : '-';
+
+  const optionsContainer = document.getElementById('optionsContainer');
+  optionsContainer.innerHTML = '';
+
+  // Home button
+  const homeBtn = document.createElement('button');
+  homeBtn.innerText = 'Home';
+  homeBtn.onclick = () => showSection('home');
+  optionsContainer.appendChild(homeBtn);
+
+  // Role toggle button
+  const toggleBtn = document.createElement('button');
+  toggleBtn.innerText = currentUser.role === 'driver' ? 'Switch to Passenger' : 'Switch to Driver';
+  toggleBtn.onclick = () => {
+    toggleUserRole();
+  };
+  optionsContainer.appendChild(toggleBtn);
+
+  if (currentUser.role === 'driver') {
+    const createRideBtn = document.createElement('button');
+    createRideBtn.innerText = 'Create a Ride';
+    createRideBtn.onclick = () => showSection('driverSection');
+    optionsContainer.appendChild(createRideBtn);
+
+    const myRidesBtn = document.createElement('button');
+    myRidesBtn.innerText = 'My Rides';
+    myRidesBtn.onclick = loadDriverRides;
+    optionsContainer.appendChild(myRidesBtn);
+  } else if (currentUser.role === 'passenger') {
+    const viewRidesBtn = document.createElement('button');
+    viewRidesBtn.innerText = 'View Available Rides';
+    viewRidesBtn.onclick = loadRidesForPassenger;
+    optionsContainer.appendChild(viewRidesBtn);
+
+    const travelBtn = document.createElement('button');
+    travelBtn.innerText = 'Travel';
+    travelBtn.onclick = () => showSection('travel');
+    optionsContainer.appendChild(travelBtn);
+
+    const reserveBtn = document.createElement('button');
+    reserveBtn.innerText = 'Reserve a Ride';
+    reserveBtn.onclick = () => showSection('reserve');
+    optionsContainer.appendChild(reserveBtn);
+  }
+
+  const logoutBtn = document.createElement('button');
+  logoutBtn.innerText = 'Logout';
+  logoutBtn.onclick = logout;
+  optionsContainer.appendChild(logoutBtn);
+
+  showSection('home');
+}
+
+function toggleUserRole() {
+  if (!currentUser) return;
+  currentUser.role = currentUser.role === 'driver' ? 'passenger' : 'driver';
+
+  const users = JSON.parse(localStorage.getItem('sw_users') || '{}');
+  users[currentUser.email] = currentUser;
+  localStorage.setItem('sw_users', JSON.stringify(users));
+
+  alert(`Role changed to ${currentUser.role}`);
+  showMain();
+}
+
+function showSection(sectionId) {
+  const mainContent = document.getElementById('mainContent');
+  const driverSection = document.getElementById('driverSection');
+  const passengerSection = document.getElementById('passengerSection');
+  const travel = document.getElementById('travel');
+  const reserve = document.getElementById('reserve');
+
+  // hide all sections
+  driverSection.style.display = 'none';
+  passengerSection.style.display = 'none';
+  travel.style.display = 'none';
+  reserve.style.display = 'none';
+
+  if (sectionId === 'home') {
+    if (currentUser.role === 'driver') {
+      driverSection.style.display = 'block';
+      loadDriverRides();
+    } else if (currentUser.role === 'passenger') {
+      passengerSection.style.display = 'block';
+      loadRidesForPassenger();
+    }
+    return;
+  }
+
+  if (sectionId === 'driverSection') { driverSection.style.display = 'block'; loadDriverRides(); }
+  if (sectionId === 'passengerSection') { passengerSection.style.display = 'block'; loadRidesForPassenger(); }
+  if (sectionId === 'travel') { travel.style.display = 'block'; initMapIfNeeded(); updateMapFromSelects(); }
+  if (sectionId === 'reserve') { reserve.style.display = 'block'; }
+}
+
+function logout() {
+  currentUser = null;
+  localStorage.removeItem('sw_session');
+  document.getElementById('mainContent').style.display = 'none';
+  document.getElementById('authButtons').style.display = 'flex';
+  alert('Logged out.');
+}
+
+// Load driver rides
+function loadDriverRides() {
+  if (!currentUser || currentUser.role !== 'driver') return;
+  const allRides = JSON.parse(localStorage.getItem('sw_rides') || "[]");
+  const myRides = allRides.filter(r => r.ownerEmail === currentUser.email);
+  const container = document.getElementById('driverRidesList');
+  container.innerHTML = '';
+  if (myRides.length === 0) container.innerHTML = '<p>No rides yet.</p>';
+  myRides.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'ride-item';
+    div.innerHTML = `
+      <strong>${r.vehicle}</strong><br/>
+      <strong>Time:</strong> ${r.time}<br/>
+      <strong>Pickup Point:</strong> ${r.departure}<br/>
+      <strong>Arrival Point:</strong> ${r.arrival}<br/>
+      <strong>Available Seats:</strong> ${r.seats}<br/>
+      <strong>Tariffs:</strong> ${r.tariff}<br/>
+      Created: ${new Date(r.createdAt).toLocaleString()}
+    `;
+    container.appendChild(div);
+  });
+}
+
+// Load passenger rides
+function loadRidesForPassenger() {
+  const allRides = JSON.parse(localStorage.getItem('sw_rides') || "[]");
+  const container = document.getElementById('ridesList');
+  container.innerHTML = '';
+  if (allRides.length === 0) { container.innerHTML = '<p>No rides available yet.</p>'; return; }
+  allRides.sort((a,b) => new Date(a.time) - new Date(b.time));
+  allRides.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'ride-item';
+    div.innerHTML = `
+      <strong>${r.vehicle}</strong> — by ${r.ownerName}<br/>
+      Time: ${r.time} — Pickup Point: ${r.departure || 'N/A'} — Seats: ${r.seats || 'N/A'}<br/>
+      Distance: ${r.distance || 'N/A'} — Arrival Point: ${r.arrival || 'N/A'}<br/>
+      Tariffs: ${r.tariff || 'N/A'} — Created: ${new Date(r.createdAt).toLocaleString()}
+    `;
+    const reserveBtn = document.createElement('button');
+    reserveBtn.textContent = 'Reserve';
+    reserveBtn.onclick = () => {
+      // TO DO: Implement reserve button functionality
+    };
+    div.appendChild(reserveBtn);
+    container.appendChild(div);
+  });
+}
+
+// Initialize map if needed
+function initMapIfNeeded() {
+  if (mapInstance) return;
+  mapInstance = L.map('map', { zoomControl: true }).setView([4.86, -74.03], 11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(mapInstance);
+
+  // Add markers for destinations
+  Object.keys(destinations).forEach(key => {
+    const d = destinations[key];
+    L.marker([d.lat, d.lng]).addTo(mapInstance).bindPopup(d.name);
+  });
+}
+
+// Update map view based on selects
+function updateMapFromSelects() {
+  initMapIfNeeded();
+  const destVal = document.getElementById('dest-input').value;
+  const arrivalVal = document.getElementById('arrival-input').value;
+
+  const points = [];
+  if (destVal !== '-' && destinations[destVal]) points.push([destinations[destVal].lat, destinations[destVal].lng]);
+  if (arrivalVal !== '-' && destinations[arrivalVal]) points.push([destinations[arrivalVal].lat, destinations[arrivalVal].lng]);
+
+  if (points.length === 0) {
+    mapInstance.setView([4.86, -74.03], 11);
+  } else if (points.length === 1) {
+    mapInstance.setView(points[0], 13);
+  } else {
+    const bounds = L.latLngBounds(points);
+    mapInstance.fitBounds(bounds.pad(0.5));
+  }
+}
+
+// Geocode location using Nominatim
+async function geocodeLocation(location) {
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`;
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    if (data && data.length > 0) {
+      return {
+        lat: parseFloat(data[0].lat),
+        lng: parseFloat(data[0].lon)
+      };
+    } else {
+      alert('Location not found: ' + location);
+      return null;
+    }
+  } catch (err) {
+    console.error('Geocoding error:', err);
+    alert('Error geocoding location.');
+    return null;
+  }
+}
+
+// Draw route between start and end coordinates
+async function drawRoute(startCoords, endCoords) {
+  const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${openRouteApiKey}`;
+  const body = {
+    coordinates: [startCoords, endCoords]
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await response.json();
+    if (data.features && data.features.length > 0) {
+      const routeCoords = data.features[0].geometry.coordinates;
+      const latLngs = routeCoords.map(coord => [coord[1], coord[0]]); // flip [lng, lat]
+
+      // Remove existing route if any
+      if (routeLine) {
+        mapInstance.removeLayer(routeLine);
+      }
+
+      // Draw new route
+      routeLine = L.polyline(latLngs, { color: 'blue', weight: 4 }).addTo(mapInstance);
+      mapInstance.fitBounds(routeLine.getBounds());
+    }
+  } catch (err) {
+    console.error('Error fetching route:', err);
+    alert('Failed to fetch route. Please check your API key and network.');
+  }
+}
+
+// Start travel route: geocode pickup and arrival, then draw route
+async function startTravelRoute() {
+  const pickup = document.getElementById("dest-input").value;
+  const arrival = document.getElementById("arrival-input").value;
+
+  if (!pickup || !arrival) {
+    alert("Please enter both pickup and arrival locations.");
+    return;
+  }
+
+  const start = await geocodeLocation(pickup);
+  const end = await geocodeLocation(arrival);
+
+  if (!start || !end) return;
+
+  await drawRoute([start.lat, start.lng], [end.lat, end.lng]);
+}
+</script>
+</body>
+</html>
